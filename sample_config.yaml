@@ -4,3 +4,6 @@ database:
   username: admin
   password: password
   db: qpay
+
+server:
+  port: 8000
