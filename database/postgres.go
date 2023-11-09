@@ -21,7 +21,7 @@ func NewPostgres(cfg *config.Config) *gorm.DB {
 		dsn := &url.URL{
 			Scheme:   "postgres",
 			User:     url.UserPassword(cfg.Database.Username, cfg.Database.Password),
-			Host:     fmt.Sprintf("localhost:%d", cfg.Database.Port),
+			Host:     fmt.Sprintf("%s:%d", cfg.Database.Host, cfg.Database.Port),
 			Path:     cfg.Database.DB,
 			RawQuery: "sslmode=disable&timezone=" + tehranTimezone.String(),
 		}
