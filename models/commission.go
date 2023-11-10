@@ -11,6 +11,7 @@ type Commission struct {
 	AmountPerTrans     float64
 	PercentagePerTrans float64
 	Status             uint8
+	Gateways           []Gateway
 	CreatedAt          time.Time
 	UpdatedAt          time.Time
 	DeletedAt          time.Time

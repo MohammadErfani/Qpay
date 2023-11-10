@@ -14,9 +14,10 @@ type Gateway struct {
 	User          User        `gorm:"foreignKey:UserID"`
 	Commission    Commission  `gorm:"foreignKey:ComID"`
 	BankAccount   BankAccount `gorm:"foreignKey:BankAccountID"`
-	Name          string      `gorm:"type:varchar(50)"`
-	Logo          string      `gorm:"type:varchar(50)"`
-	Route         string      `gorm:"type:varchar(50)"`
+	Transactions  []Transaction
+	Name          string `gorm:"type:varchar(50)"`
+	Logo          string `gorm:"type:varchar(50)"`
+	Route         string `gorm:"type:varchar(50)"`
 	Status        uint8
 	Type          uint8
 	CreatedAt     time.Time
