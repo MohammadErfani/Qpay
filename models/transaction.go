@@ -6,7 +6,6 @@ import (
 
 type Transaction struct {
 	gorm.Model
-	TransID              uint `gorm:"primaryKey"`
 	GatewayID            uint
 	Gateway              Gateway `gorm:"foreignKey:GatewayID"`
 	PaymentAmount        float64

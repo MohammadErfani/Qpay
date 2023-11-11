@@ -6,12 +6,11 @@ import (
 
 type Gateway struct {
 	gorm.Model
-	GatewayID     uint `gorm:"primaryKey"`
 	UserID        uint
-	ComID         uint
+	CommissionID  uint
 	BankAccountID uint
 	User          User        `gorm:"foreignKey:UserID"`
-	Commission    Commission  `gorm:"foreignKey:ComID"`
+	Commission    Commission  `gorm:"foreignKey:CommissionID"`
 	BankAccount   BankAccount `gorm:"foreignKey:BankAccountID"`
 	Transactions  []Transaction
 	Name          string `gorm:"type:varchar(50)"`

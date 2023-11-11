@@ -6,7 +6,6 @@ import (
 
 type User struct {
 	gorm.Model
-	UserID       uint   `gorm:"primaryKey"`
 	Name         string `gorm:"type:varchar(50)"`
 	Username     string `gorm:"type:varchar(50);unique"`
 	Email        string `gorm:"type:varchar(50);unique"`

@@ -1,5 +1,5 @@
 CREATE TABLE "users" (
-  "id" integer PRIMARY KEY,
+  "id" serial PRIMARY KEY,
   "username" varchar,
   "email" varchar,
   "password" varchar,
@@ -14,7 +14,7 @@ CREATE TABLE "users" (
 );
 
 CREATE TABLE "banks" (
-  "id" integer PRIMARY KEY,
+  "id" serial PRIMARY KEY,
   "name" varchar,
   "logo" varchar,
   "created_at" timestamp with time zone,
@@ -23,7 +23,7 @@ CREATE TABLE "banks" (
 );
 
 CREATE TABLE "bank_accounts" (
-  "id" integer PRIMARY KEY,
+  "id" serial PRIMARY KEY,
   "user_id" integer,
   "bank_id" integer,
   "status" integer,
@@ -35,7 +35,7 @@ CREATE TABLE "bank_accounts" (
 );
 
 CREATE TABLE "gateways" (
-  "id" integer PRIMARY KEY,
+  "id" serial PRIMARY KEY,
   "user_id" integer,
   "commission_id" integer,
   "bank_account_id" integer,
@@ -50,7 +50,7 @@ CREATE TABLE "gateways" (
 );
 
 CREATE TABLE "commissions" (
-  "id" integer PRIMARY KEY,
+  "id" serial PRIMARY KEY,
   "amount_per_trans" float,
   "percentage_per_trans" float,
   "status" integer,
@@ -60,7 +60,7 @@ CREATE TABLE "commissions" (
 );
 
 CREATE TABLE "transactions" (
-  "id" integer PRIMARY KEY,
+  "id" serial PRIMARY KEY,
   "gateways_id" integer,
   "payment_amount" float,
   "status" integer,
