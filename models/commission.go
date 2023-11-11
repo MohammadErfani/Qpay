@@ -2,7 +2,6 @@ package models
 
 import (
 	"gorm.io/gorm"
-	"time"
 )
 
 type Commission struct {
@@ -12,7 +11,4 @@ type Commission struct {
 	PercentagePerTrans float64
 	Status             uint8
 	Gateways           []Gateway
-	CreatedAt          time.Time
-	UpdatedAt          time.Time
-	DeletedAt          time.Time
 }

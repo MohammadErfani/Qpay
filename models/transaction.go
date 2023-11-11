@@ -2,7 +2,6 @@ package models
 
 import (
 	"gorm.io/gorm"
-	"time"
 )
 
 type Transaction struct {
@@ -14,7 +13,4 @@ type Transaction struct {
 	Status               uint8
 	OwnerBankAccount     string `gorm:"type:varchar(50)"`
 	PurchaserBankAccount string `gorm:"type:varchar(50)"`
-	CreatedAt            time.Time
-	UpdatedAt            time.Time
-	DeletedAt            time.Time
 }

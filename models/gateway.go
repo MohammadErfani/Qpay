@@ -2,7 +2,6 @@ package models
 
 import (
 	"gorm.io/gorm"
-	"time"
 )
 
 type Gateway struct {
@@ -20,7 +19,4 @@ type Gateway struct {
 	Route         string `gorm:"type:varchar(50)"`
 	Status        uint8
 	Type          uint8
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
-	DeletedAt     time.Time
 }

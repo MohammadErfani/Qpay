@@ -2,7 +2,6 @@ package models
 
 import (
 	"gorm.io/gorm"
-	"time"
 )
 
 type BankAccount struct {
@@ -16,7 +15,4 @@ type BankAccount struct {
 	Status        uint8
 	AccountOwner  string `gorm:"type:varchar(50)"`
 	Sheba         string `gorm:"type:varchar(50);unique"`
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
-	DeletedAt     time.Time
 }

@@ -2,7 +2,6 @@ package models
 
 import (
 	"gorm.io/gorm"
-	"time"
 )
 
 type Bank struct {
@@ -11,7 +10,4 @@ type Bank struct {
 	Name         string `gorm:"type:varchar(50)"`
 	Logo         string
 	BankAccounts []BankAccount
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
-	DeletedAt    time.Time
 }
