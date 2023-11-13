@@ -14,5 +14,6 @@ func InitRoutesV1() *echo.Echo {
 		return ctx.String(http.StatusOK, "This is Qpay!")
 	})
 	AuthGroup(v1)
+	BankAccountRoutes(v1)
 	return e
 }

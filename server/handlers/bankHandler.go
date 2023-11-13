@@ -4,8 +4,13 @@ import (
 	"Qpay/config"
 	"Qpay/database"
 	"Qpay/models"
+	"gorm.io/gorm"
 	"log"
 )
+
+type Auth struct {
+	DB *gorm.DB
+}
 
 func addCard(configPath string) {
 	cfg := config.InitConfig(configPath)

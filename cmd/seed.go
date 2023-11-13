@@ -42,4 +42,27 @@ func seed(configPath string) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	bank := []models.Bank{{
+		Name: "بانک ملی ایران",
+		Logo: "https://bmi.ir/app_themes/faresponsive/img/bmilogo.png",
+	},
+		{
+			Name: "بانک سپه",
+			Logo: "https://www.banksepah.ir/UI/Styles/sepah1401/images/logo.png",
+		},
+		{
+			Name: "بانک صنعت و معدن",
+			Logo: "https://www.bim.ir/_Bimportal/logos/fa-IR/logo.png",
+		},
+		{
+			Name: "بانک کشاورزی",
+			Logo: "https://www.bki.ir/Portals/0/Logo.jpg",
+		},
+		{
+			Name: "بانک مسکن",
+			Logo: "https://www.bank-maskan.ir/image/layout_set_logo?img_id=15494931&t=1699877843772",
+		}}
+	db.Save(&bank)
+
 }

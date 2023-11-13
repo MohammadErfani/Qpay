@@ -42,3 +42,6 @@ func NewPostgres(cfg *config.Config) *gorm.DB {
 	return instance
 
 }
+func DB() *gorm.DB {
+	return instance
+}
