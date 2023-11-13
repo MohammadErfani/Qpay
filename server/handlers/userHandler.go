@@ -4,21 +4,21 @@ import (
 	"Qpay/database"
 	"Qpay/models"
 	"Qpay/services/auth"
+	"Qpay/utils"
 	"errors"
 	"github.com/labstack/echo/v4"
 	"net/http"
-	"regexp"
 )
 
 type RegsiterRequest struct {
-	Name        string `json:"email" binding:"required"`
-	Username    string `json:"email" binding:"required"`
+	Name        string `json:"name" binding:"required"`
+	Username    string `json:"username" binding:"required"`
 	Email       string `json:"email" binding:"required"`
-	Password    string `json:"email" binding:"required"`
-	PhoneNumber string `json:"email" binding:"required"`
-	Identity    string `json:"email" binding:"required"`
-	Address     string `json:"email" binding:"required"`
-	IsUser      bool   `json:"email" binding:"required"` // 0 , 1 , 2
+	Password    string `json:"password" binding:"required"`
+	PhoneNumber string `json:"phoneNumber" binding:"required"`
+	Identity    string `json:"identity" binding:"required"`
+	Address     string `json:"address" binding:"required"`
+	IsUser      bool   `json:"isUser" binding:"required"` // 0 , 1 , 2
 }
 type RegisterResponse struct {
 	Status  string
@@ -69,20 +69,17 @@ func ValidateUser(user *RegsiterRequest) error {
 	if user.Email == "" {
 		return errors.New("email is required")
 	}
-	phoneRegex := regexp.MustCompile(`^\d{9}$`)
-	if !phoneRegex.MatchString(user.PhoneNumber) {
-		return errors.New("invalid phone number format")
+	if user.Password == "" {
+		return errors.New("phone number is required")
 	}
-	emailRegex := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
-	if !emailRegex.MatchString(user.Email) {
-		return errors.New("invalid email format")
+	if utils.IsValidEmail(user.Email) {
+		return errors.New("email is not in correct format")
 	}
-	identityRegex := regexp.MustCompile(`^\d{10}$`)
-	if !identityRegex.MatchString(user.Identity) {
-		return errors.New("identity number must be 10 digits")
+	if utils.IsValidPhoneNumber(user.PhoneNumber) {
+		return errors.New("phone number is not in correct format")
 	}
-	if len(user.Password) < 4 {
-		return errors.New("password must be at least 4 characters long")
+	if utils.IsValidNationalCode(user.Identity) {
+		return errors.New("identity is not in correct format")
 	}
 	return nil
 }
