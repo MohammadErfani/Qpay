@@ -4,28 +4,18 @@ import (
 	"Qpay/models"
 	"Qpay/utils"
 	"errors"
+	"fmt"
 	"gorm.io/gorm"
 )
 
-func GetUserByEmail(db *gorm.DB, email string) (*models.User, error) {
-	var dbUser models.User
-	result := db.First(&dbUser, "email = ?", email)
-	if result.RowsAffected == 0 {
+func GetUser(db *gorm.DB, fieldName, fieldValue string) (*models.User, error) {
+	var user models.User
+	err := db.First(&user, fmt.Sprintf("%s=?", fieldName), fieldValue).Error
+	if err != nil {
 		return nil, errors.New("user not found")
 	}
-
-	return &dbUser, nil
+	return &user, nil
 }
-func GetUserByUsername(db *gorm.DB, username string) (*models.User, error) {
-	var dbUser models.User
-	result := db.First(&dbUser, "username = ?", username)
-	if result.RowsAffected == 0 {
-		return nil, errors.New("user not found")
-	}
-
-	return &dbUser, nil
-}
-
 func CreateUser(db *gorm.DB, user models.User) (*models.User, error) {
 	hashedPassword, err := utils.HashPassword(user.Password)
 	if err != nil {
@@ -38,4 +28,21 @@ func CreateUser(db *gorm.DB, user models.User) (*models.User, error) {
 	}
 
 	return &user, nil
+}
+func GetUserByEmail(db *gorm.DB, email string) (*models.User, error) {
+	var dbUser models.User
+	err := db.First(&dbUser, "email=?", email).Error
+	if err != nil {
+		return nil, errors.New("user not found")
+	}
+	return &dbUser, nil
+}
+func GetUserByUsername(db *gorm.DB, username string) (*models.User, error) {
+	var dbUser models.User
+	err := db.First(&dbUser, "username=?", username).Error
+	if err != nil {
+		return nil, errors.New("user not found")
+	}
+
+	return &dbUser, nil
 }

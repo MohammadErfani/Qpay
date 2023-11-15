@@ -6,19 +6,21 @@ import (
 	"Qpay/services/auth"
 	"Qpay/utils"
 	"errors"
+	"fmt"
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 	"net/http"
 )
 
-type RegsiterRequest struct {
+type RegisterRequest struct {
 	Name        string `json:"name" binding:"required"`
 	Username    string `json:"username" binding:"required"`
 	Email       string `json:"email" binding:"required"`
 	Password    string `json:"password" binding:"required"`
-	PhoneNumber string `json:"phoneNumber" binding:"required"`
+	PhoneNumber string `json:"phone_number" binding:"required"`
 	Identity    string `json:"identity" binding:"required"`
 	Address     string `json:"address" binding:"required"`
-	IsUser      bool   `json:"isUser" binding:"required"` // 0 , 1 , 2
+	IsCompany   bool   `json:"is_company" binding:"required"` // 0 , 1 , 2
 }
 type RegisterResponse struct {
 	Status  string
@@ -27,20 +29,15 @@ type RegisterResponse struct {
 
 func CreateUser(ctx echo.Context) error {
 	db := database.DB()
-	var req RegsiterRequest
+	var req RegisterRequest
 	if err := ctx.Bind(&req); err != nil {
 		return ctx.JSON(http.StatusBadRequest, "Bind Error")
 	}
 	if err := ValidateUser(&req); err != nil {
-		return ctx.JSON(http.StatusBadRequest, err.Error())
+		return ctx.JSON(http.StatusForbidden, err.Error())
 	}
-	existUser, _ := auth.GetUserByEmail(db, req.Email)
-	if existUser != nil {
-		return ctx.JSON(http.StatusBadRequest, "User Email exist")
-	}
-	existUser, _ = auth.GetUserByUsername(db, req.Username)
-	if existUser != nil {
-		return ctx.JSON(http.StatusBadRequest, "User name exist")
+	if err := ValidateUserUnique(db, &req); err != nil {
+		return ctx.JSON(http.StatusConflict, err.Error())
 	}
 	user := models.User{
 		Name:        req.Name,
@@ -50,36 +47,51 @@ func CreateUser(ctx echo.Context) error {
 		PhoneNumber: req.PhoneNumber,
 		Identity:    req.Identity,
 		Address:     req.Address,
+		Role:        models.SetRole(req.IsCompany),
 	}
 	_, err := auth.CreateUser(db, user)
 	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, "Internal server error in create user ")
+		return ctx.JSON(http.StatusInternalServerError, "Internal server error in create user ")
 	}
 	return ctx.JSON(http.StatusCreated, RegisterResponse{Status: "success", Message: "User created successfully"})
 
 }
-func ValidateUser(user *RegsiterRequest) error {
-	if user.Name == "" {
-		return errors.New("name is required")
-	}
-	if user.Username == "" {
-		return errors.New("username is required")
-	}
+func ValidateUser(user *RegisterRequest) error {
 
-	if user.Email == "" {
-		return errors.New("email is required")
+	requiredFields := map[string]string{
+		"name":         user.Name,
+		"email":        user.Email,
+		"password":     user.Password,
+		"phone_number": user.PhoneNumber,
+		"identity":     user.Identity,
 	}
-	if user.Password == "" {
-		return errors.New("phone number is required")
+	if err := utils.IsRequired(requiredFields); err != nil {
+		return err
 	}
-	if utils.IsValidEmail(user.Email) {
-		return errors.New("email is not in correct format")
+	if err := utils.IsValidEmail(user.Email); err != nil {
+		return err
 	}
-	if utils.IsValidPhoneNumber(user.PhoneNumber) {
-		return errors.New("phone number is not in correct format")
+	if err := utils.IsValidPhoneNumber(user.PhoneNumber); err != nil {
+		return err
 	}
-	if utils.IsValidNationalCode(user.Identity) {
-		return errors.New("identity is not in correct format")
+	if err := utils.IsValidNationalCode(user.Identity); err != nil {
+		return err
+	}
+	return nil
+}
+
+func ValidateUserUnique(db *gorm.DB, user *RegisterRequest) error {
+
+	uniqueFields := map[string]string{
+		"username":     user.Username,
+		"email":        user.Email,
+		"phone_number": user.PhoneNumber,
+		"identity":     user.Identity,
+	}
+	for fieldName, fieldValue := range uniqueFields {
+		if _, err := auth.GetUser(db, fieldName, fieldValue); err == nil {
+			return errors.New(fmt.Sprintf("%s already exist", fieldName))
+		}
 	}
 	return nil
 }
