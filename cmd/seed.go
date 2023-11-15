@@ -4,6 +4,7 @@ import (
 	"Qpay/config"
 	"Qpay/database"
 	"Qpay/models"
+	"Qpay/services"
 	"Qpay/utils"
 	"github.com/spf13/cobra"
 	"log"
@@ -44,7 +45,7 @@ func seed(configPath string) {
 		log.Fatal("Error seeding User", err)
 	}
 	// Seeding Banks
-	bankNames := []string{"Pasargad", "Melli", "Mellat", "Eghtesad Novin", "Tejarat"}
+	bankNames := []string{"Pasargad", "ملی", "ملت", "Eghtesad Novin", "Tejarat"}
 	for _, bn := range bankNames {
 		err = db.Where(models.Bank{Name: bn}).FirstOrCreate(&models.Bank{Name: bn}).Error
 		if err != nil {
@@ -66,4 +67,22 @@ func seed(configPath string) {
 			log.Fatal("Error seeding commission", err)
 		}
 	}
+	// seed bank account
+	//var bank models.Bank
+	//err = db.First(&bank, models.Bank{Name: "Mellat"}).Error
+	//if err != nil {
+	//	log.Fatal("Error getting Bank")
+	//}
+	bankAccount := models.BankAccount{
+		Sheba: "101104411111111234123412",
+	}
+	err = services.SetUserAndBankForBankAccount(db, &bankAccount)
+	if err != nil {
+		log.Fatal("Error in Sheba: ", err)
+	}
+	err = db.FirstOrCreate(&bankAccount, models.BankAccount{Sheba: bankAccount.Sheba}).Error
+	if err != nil {
+		log.Fatal("error seeding bank account", err)
+	}
+	//err = db.FirstOrCreate(&bankAccount).Error
 }
