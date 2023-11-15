@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"strings"
 )
 
 func IsValidEmail(email string) error {
@@ -34,7 +35,7 @@ func IsValidNationalCode(nationalCode string) error {
 
 func IsRequired(requiredFields map[string]string) error {
 	for fieldName, value := range requiredFields {
-		if len(value) == 0 {
+		if len(strings.TrimSpace(value)) == 0 {
 			return errors.New(fmt.Sprintf("%s is required", fieldName))
 		}
 	}
