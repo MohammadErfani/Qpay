@@ -23,3 +23,10 @@ const (
 	IsCompany
 	IsAdmin
 )
+
+func SetRole(isCompany bool) uint8 {
+	if isCompany {
+		return IsCompany
+	}
+	return IsNaturalPerson
+}

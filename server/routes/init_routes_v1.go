@@ -13,6 +13,7 @@ func InitRoutesV1() *echo.Echo {
 	v1.GET("/test", func(ctx echo.Context) error {
 		return ctx.String(http.StatusOK, "This is Qpay!")
 	})
+	UserGroup(v1)
 	AuthGroup(v1)
 	return e
 }
