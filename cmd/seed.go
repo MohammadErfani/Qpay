@@ -27,6 +27,7 @@ func init() {
 func seed(configPath string) {
 	cfg := config.InitConfig(configPath)
 	db := database.NewPostgres(cfg)
+	// seeding User
 	password, _ := utils.HashPassword("1234")
 	user := models.User{
 		Name:        "Mohammad Erfani",
@@ -38,8 +39,31 @@ func seed(configPath string) {
 		Identity:    "0441111111",
 		Role:        models.IsNaturalPerson,
 	}
-	err := db.FirstOrCreate(&user, models.User{Email: user.Email, PhoneNumber: user.PhoneNumber, Username: user.Username}).Error
+	err := db.Where(models.User{Email: user.Email}).Or(models.User{PhoneNumber: user.PhoneNumber}).Or(models.User{Username: user.Username}).FirstOrCreate(&user).Error
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Error seeding User", err)
+	}
+	// Seeding Banks
+	bankNames := []string{"Pasargad", "Melli", "Mellat", "Eghtesad Novin", "Tejarat"}
+	for _, bn := range bankNames {
+		err = db.Where(models.Bank{Name: bn}).FirstOrCreate(&models.Bank{Name: bn}).Error
+		if err != nil {
+			log.Fatal("Error seeding Banks", err)
+		}
+	}
+
+	// seeding commission
+	var i float64 = 2
+	for ; i <= 4; i += 2 {
+		amount := 100 * i
+		percent := 0.02 / i
+		err = db.FirstOrCreate(&models.Commission{
+			PercentagePerTrans: percent,
+			AmountPerTrans:     amount,
+			Status:             models.CommIsActive,
+		}, models.Commission{PercentagePerTrans: percent, AmountPerTrans: amount}).Error
+		if err != nil {
+			log.Fatal("Error seeding commission", err)
+		}
 	}
 }

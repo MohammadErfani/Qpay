@@ -11,3 +11,8 @@ type Commission struct {
 	Status             uint8
 	Gateways           []Gateway
 }
+
+const (
+	CommIsActive = iota
+	CommIsInactive
+)
