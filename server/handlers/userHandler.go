@@ -3,7 +3,7 @@ package handlers
 import (
 	"Qpay/database"
 	"Qpay/models"
-	"Qpay/services/auth"
+	"Qpay/services"
 	"Qpay/utils"
 	"errors"
 	"fmt"
@@ -49,7 +49,7 @@ func CreateUser(ctx echo.Context) error {
 		Address:     req.Address,
 		Role:        models.SetRole(req.IsCompany),
 	}
-	_, err := auth.CreateUser(db, user)
+	_, err := services.CreateUser(db, user)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, "Internal server error in create user ")
 	}
@@ -89,7 +89,7 @@ func ValidateUserUnique(db *gorm.DB, user *RegisterRequest) error {
 		"identity":     user.Identity,
 	}
 	for fieldName, fieldValue := range uniqueFields {
-		if _, err := auth.GetUser(db, fieldName, fieldValue); err == nil {
+		if _, err := services.GetUser(db, fieldName, fieldValue); err == nil {
 			return errors.New(fmt.Sprintf("%s already exist", fieldName))
 		}
 	}
