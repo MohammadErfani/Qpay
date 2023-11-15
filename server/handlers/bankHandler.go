@@ -3,6 +3,7 @@ package handlers
 import (
 	"Qpay/database"
 	"Qpay/models"
+	"Qpay/services/bankaccount"
 	"encoding/json"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -38,54 +39,25 @@ func FindCard(ctx echo.Context) error {
 }
 
 func RegisterNewCard(ctx echo.Context) error {
+	db := database.DB()
+	var userID uint = 1 //user id ro bayad tashkhis bedim o inja vared konim.
 	sheba := ctx.QueryParam("sheba")
-	card := models.BankAccount{Sheba: sheba}
-	if err := ctx.Bind(&card); err != nil {
-		return err
+	err := bankaccount.CheckSheba(sheba)
+	if err != nil {
+		return ctx.JSON(http.StatusBadRequest, err)
 	}
-	return ctx.JSON(http.StatusCreated, card)
+	bankID, Owner := bankaccount.GetOwnerSheba(sheba)
+	card := models.BankAccount{Sheba: sheba, BankID: bankID, AccountOwner: Owner, UserID: userID}
+	db.Save(&card)
+	return ctx.JSON(http.StatusOK, "You're card is successfully registered!")
 }
 
 func DeleteCard(ctx echo.Context) error {
-	return nil
-}
-
-/**
-
-
-func(c echo.Context) error {
-		db := database.DB()
-		//card := models.BankAccount{
-		//	Sheba:  "IR0696000000010324200001",
-		//	Status: 1,
-		//	UserID: 1,
-		//}
-		//_, err := bankaccount.CreateCard(db, card)
-		//if err != nil {
-		//	return c.JSON(http.StatusBadRequest, "Internal server error in create user ")
-		//}
-		//account := &models.BankAccount{
-		//	UserID:       1,
-		//	BankID:       1,
-		//	Status:       0,
-		//	AccountOwner: "amin",
-		//	Sheba:        "IR0696000000010324200001",
-		//}
-		//acc := &models.BankAccount{
-		//	UserID:       1,
-		//	BankID:       1,
-		//	User:         models.User{Username: "mohammadErfani"},
-		//	Bank:         models.Bank{Name: "بانک ملی ایران"},
-		//	Status:       0,
-		//	AccountOwner: "محمد عرفانی",
-		//	Sheba:        "IR0696000000010324200001",
-		//}
-		//db.Save(acc)
-		var card01 models.BankAccount
-		db.First(&card01)
-		return json.NewEncoder(c.Response()).Encode(card01)
+	db := database.DB()
+	id := ctx.QueryParam("id")
+	err := db.Delete(&models.BankAccount{}, id)
+	if err != nil {
+		return ctx.JSON(http.StatusNotFound, err)
 	}
-
-
-
-*/
+	return ctx.JSON(http.StatusOK, "You're Card is successfully deleted!")
+}

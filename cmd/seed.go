@@ -43,25 +43,50 @@ func seed(configPath string) {
 		log.Fatal(err)
 	}
 
-	bank := []models.Bank{{
-		Name: "بانک ملی ایران",
-		Logo: "https://bmi.ir/app_themes/faresponsive/img/bmilogo.png",
-	},
+	bank := []models.Bank{
 		{
-			Name: "بانک سپه",
-			Logo: "https://www.banksepah.ir/UI/Styles/sepah1401/images/logo.png",
+			Name: "بانک ملی ایران",
+			Logo: "https://bmi.ir/app_themes/faresponsive/img/bmilogo.png",
 		},
 		{
-			Name: "بانک صنعت و معدن",
-			Logo: "https://www.bim.ir/_Bimportal/logos/fa-IR/logo.png",
+			Name: "بانک آینده",
+			Logo: "https://static.idpay.ir/banks/ayandeh.png",
+		},
+		{
+			Name: "بانک اقتصاد نوین",
+			Logo: "https://static.idpay.ir/banks/eghtesad-novin.png",
+		},
+		{
+			Name: "بانک ایران زمین",
+			Logo: "https://static.idpay.ir/banks/iran-zamin.png",
+		},
+		{
+			Name: "بانک پارسیان",
+			Logo: "https://static.idpay.ir/banks/parsian.png",
+		},
+		{
+			Name: "بانک پاسارگاد",
+			Logo: "https://static.idpay.ir/banks/pasargad.png",
+		},
+		{
+			Name: "بانک تجارت",
+			Logo: "https://static.idpay.ir/banks/tejarat.png",
+		},
+		{
+			Name: "بانک سپه",
+			Logo: "https://static.idpay.ir/banks/sepah.png",
+		},
+		{
+			Name: "بانک توسعه تعاون",
+			Logo: "https://static.idpay.ir/banks/tosee-taavon.png",
 		},
 		{
 			Name: "بانک کشاورزی",
-			Logo: "https://www.bki.ir/Portals/0/Logo.jpg",
+			Logo: "https://static.idpay.ir/banks/keshavarzi.png",
 		},
 		{
 			Name: "بانک مسکن",
-			Logo: "https://www.bank-maskan.ir/image/layout_set_logo?img_id=15494931&t=1699877843772",
+			Logo: "https://static.idpay.ir/banks/maskan.png",
 		}}
 	db.Save(&bank)
 
