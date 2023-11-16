@@ -10,7 +10,7 @@ import (
 
 func GetUser(db *gorm.DB, fieldName, fieldValue string) (*models.User, error) {
 	var user models.User
-	err := db.First(&user, fmt.Sprintf("%s=?", fieldName), fieldValue).Error
+	err := db.Preload("Gateways").Preload("BankAccounts").Preload("BankAccounts.Bank").First(&user, fmt.Sprintf("%s=?", fieldName), fieldValue).Error
 	if err != nil {
 		return nil, errors.New("user not found")
 	}

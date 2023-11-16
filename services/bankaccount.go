@@ -28,8 +28,31 @@ func SetUserAndBankForBankAccount(db *gorm.DB, bankAccount *models.BankAccount) 
 	return nil
 }
 
-func GetUserBankAccounts() {
+// GetUserBankAccounts return all user bank accounts
+func GetUserBankAccounts(db *gorm.DB, userID uint) ([]models.BankAccount, error) {
+	user, err := GetUser(db, "id", fmt.Sprintf("%v", userID))
+	if err != nil {
+		return []models.BankAccount{}, err
+	}
+	cards := user.BankAccounts
+	if len(cards) == 0 {
+		return []models.BankAccount{}, errors.New("this user doesn't have any bank account")
+	}
+	return cards, nil
+}
 
+// GetSpecificBankAccount get only check in users bank accounts and return match
+func GetSpecificBankAccount(db *gorm.DB, userID, bankAccountID uint) (models.BankAccount, error) {
+	cards, err := GetUserBankAccounts(db, userID)
+	if err != nil {
+		return models.BankAccount{}, err
+	}
+	for _, card := range cards {
+		if card.ID == bankAccountID {
+			return card, nil
+		}
+	}
+	return models.BankAccount{}, errors.New("bank account not found")
 }
 
 func GetBankAccount(db *gorm.DB, fieldName, fieldValue string) (*models.BankAccount, error) {
@@ -54,5 +77,10 @@ func CreateBankAccount(db *gorm.DB, sheba string) (*models.BankAccount, error) {
 	return &bankAccount, nil
 }
 
-func DeleteBankAccount() {
+func DeleteBankAccount(db *gorm.DB, bankAccountID uint) error {
+	result := db.Delete(&models.BankAccount{}, bankAccountID)
+	if result.RowsAffected == 0 {
+		return errors.New("not found")
+	}
+	return nil
 }
