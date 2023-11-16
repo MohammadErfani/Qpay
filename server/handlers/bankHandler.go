@@ -3,14 +3,18 @@ package handlers
 import (
 	"Qpay/database"
 	"Qpay/models"
-	"Qpay/services/bankaccount"
+	"Qpay/services"
+	"Qpay/utils"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 	"net/http"
 	"strconv"
 )
 
-type Card struct {
+type BankAccountRequest struct {
 	Sheba string `json:"sheba" xml:"sheba" form:"sheba" query:"sheba"`
 }
 
@@ -40,24 +44,43 @@ func FindCard(ctx echo.Context) error {
 
 func RegisterNewCard(ctx echo.Context) error {
 	db := database.DB()
-	var userID uint = 1 //user id ro bayad tashkhis bedim o inja vared konim.
-	sheba := ctx.QueryParam("sheba")
-	err := bankaccount.CheckSheba(sheba)
-	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, err)
+	var req BankAccountRequest
+	//var userID uint = 1 //user id ro bayad tashkhis bedim o inja vared konim.
+	if err := ctx.Bind(&req); err != nil {
+		return ctx.JSON(http.StatusBadRequest, "Bind Error")
 	}
-	bankID, Owner := bankaccount.GetOwnerSheba(sheba)
-	card := models.BankAccount{Sheba: sheba, BankID: bankID, AccountOwner: Owner, UserID: userID}
-	db.Save(&card)
+	//sheba := ctx.QueryParam("sheba")
+	err := utils.CheckSheba(req.Sheba)
+	if err != nil {
+		return ctx.JSON(http.StatusBadRequest, err.Error())
+	}
+	if err := ValidateUniqueBankAccount(db, &req); err != nil {
+		return ctx.JSON(http.StatusConflict, err.Error())
+	}
+	_, err = services.CreateBankAccount(db, req.Sheba)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, "Internal server error in create bank account")
+	}
+	//bankID, Owner := utils.GetOwnerSheba(sheba)
+	//card := models.BankAccount{Sheba: sheba, BankID: bankID, AccountOwner: Owner, UserID: userID}
+	//db.Save(&card)
 	return ctx.JSON(http.StatusOK, "You're card is successfully registered!")
 }
 
 func DeleteCard(ctx echo.Context) error {
 	db := database.DB()
-	id := ctx.QueryParam("id")
-	err := db.Delete(&models.BankAccount{}, id)
+	id := ctx.Param("id")
+	fmt.Println(id)
+	err := db.Delete(&models.BankAccount{}, "id=?", id).Error
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, err)
 	}
 	return ctx.JSON(http.StatusOK, "You're Card is successfully deleted!")
+}
+
+func ValidateUniqueBankAccount(db *gorm.DB, bankAccount *BankAccountRequest) error {
+	if _, err := services.GetBankAccount(db, "sheba", bankAccount.Sheba); err == nil {
+		return errors.New("sheba already exist")
+	}
+	return nil
 }

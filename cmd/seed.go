@@ -4,6 +4,7 @@ import (
 	"Qpay/config"
 	"Qpay/database"
 	"Qpay/models"
+	"Qpay/services"
 	"Qpay/utils"
 	"github.com/spf13/cobra"
 	"log"
@@ -27,6 +28,7 @@ func init() {
 func seed(configPath string) {
 	cfg := config.InitConfig(configPath)
 	db := database.NewPostgres(cfg)
+	// seeding User
 	password, _ := utils.HashPassword("1234")
 	user := models.User{
 		Name:        "Mohammad Erfani",
@@ -38,56 +40,93 @@ func seed(configPath string) {
 		Identity:    "0441111111",
 		Role:        models.IsNaturalPerson,
 	}
-	err := db.FirstOrCreate(&user, models.User{Email: user.Email, PhoneNumber: user.PhoneNumber, Username: user.Username}).Error
+	err := db.Where(models.User{Email: user.Email}).Or(models.User{PhoneNumber: user.PhoneNumber}).Or(models.User{Username: user.Username}).FirstOrCreate(&user).Error
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Error seeding User", err)
 	}
-
-	bank := []models.Bank{
+	banks := []models.Bank{
 		{
-			Name: "بانک ملی ایران",
+			Name: "ملی ایران",
 			Logo: "https://bmi.ir/app_themes/faresponsive/img/bmilogo.png",
 		},
 		{
-			Name: "بانک آینده",
+			Name: "آینده",
 			Logo: "https://static.idpay.ir/banks/ayandeh.png",
 		},
 		{
-			Name: "بانک اقتصاد نوین",
+			Name: "اقتصاد نوین",
 			Logo: "https://static.idpay.ir/banks/eghtesad-novin.png",
 		},
 		{
-			Name: "بانک ایران زمین",
+			Name: "ایران زمین",
 			Logo: "https://static.idpay.ir/banks/iran-zamin.png",
 		},
 		{
-			Name: "بانک پارسیان",
+			Name: "پارسیان",
 			Logo: "https://static.idpay.ir/banks/parsian.png",
 		},
 		{
-			Name: "بانک پاسارگاد",
+			Name: "پاسارگاد",
 			Logo: "https://static.idpay.ir/banks/pasargad.png",
 		},
 		{
-			Name: "بانک تجارت",
+			Name: "تجارت",
 			Logo: "https://static.idpay.ir/banks/tejarat.png",
 		},
 		{
-			Name: "بانک سپه",
+			Name: "سپه",
 			Logo: "https://static.idpay.ir/banks/sepah.png",
 		},
 		{
-			Name: "بانک توسعه تعاون",
+			Name: "توسعه تعاون",
 			Logo: "https://static.idpay.ir/banks/tosee-taavon.png",
 		},
 		{
-			Name: "بانک کشاورزی",
+			Name: "کشاورزی",
 			Logo: "https://static.idpay.ir/banks/keshavarzi.png",
 		},
 		{
-			Name: "بانک مسکن",
+			Name: "مسکن",
 			Logo: "https://static.idpay.ir/banks/maskan.png",
 		}}
-	db.Save(&bank)
 
+	for _, bank := range banks {
+		err = db.Where(models.Bank{Name: bank.Name}).FirstOrCreate(&bank).Error
+		if err != nil {
+			log.Fatal("Error seeding Banks", err)
+		}
+	}
+
+	// seeding commission
+	var i float64 = 2
+	for ; i <= 4; i += 2 {
+		amount := 100 * i
+		percent := 0.02 / i
+		err = db.FirstOrCreate(&models.Commission{
+			PercentagePerTrans: percent,
+			AmountPerTrans:     amount,
+			Status:             models.CommIsActive,
+		}, models.Commission{PercentagePerTrans: percent, AmountPerTrans: amount}).Error
+		if err != nil {
+			log.Fatal("Error seeding commission", err)
+		}
+	}
+	// seed bank account
+	//var bank models.Bank
+	//err = db.First(&bank, models.Bank{Name: "Mellat"}).Error
+	//if err != nil {
+	//	log.Fatal("Error getting Bank")
+	//}
+	bankAccount := models.BankAccount{
+		Sheba: "101104411111111234123412",
+	}
+	err = services.SetUserAndBankForBankAccount(db, &bankAccount)
+	if err != nil {
+		log.Fatal("Error in Sheba: ", err)
+	}
+	err = db.FirstOrCreate(&bankAccount, models.BankAccount{Sheba: bankAccount.Sheba}).Error
+	if err != nil {
+		log.Fatal("error seeding bank account", err)
+	}
+	//err = db.FirstOrCreate(&bankAccount).Error
 }

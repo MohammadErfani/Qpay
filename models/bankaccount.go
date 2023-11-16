@@ -15,3 +15,8 @@ type BankAccount struct {
 	AccountOwner string `gorm:"type:varchar(50)"`
 	Sheba        string `gorm:"type:varchar(50);unique"`
 }
+
+const (
+	StatusBankAccountActive = iota
+	StatusBankAccountInActive
+)

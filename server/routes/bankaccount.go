@@ -5,11 +5,11 @@ import (
 	echo "github.com/labstack/echo/v4"
 )
 
-func BankAccount(bc *echo.Group) {
-	bc.GET("/bankaccount", handlers.ListAllCards)             // List all cards
-	bc.GET("/bankaccount/:id", handlers.FindCard)             // find a card
-	bc.POST("/bankaccount", handlers.RegisterNewCard)         // register card for a user
-	bc.DELETE("/bankaccount/delete/:id", handlers.DeleteCard) // delete card for a user
+func BankAccountGroup(bc *echo.Group) {
+	bc.GET("/bankaccount", handlers.ListAllCards)      // List all cards
+	bc.GET("/bankaccount/:id", handlers.FindCard)      // find a card
+	bc.POST("/bankaccount", handlers.RegisterNewCard)  // register card for a user
+	bc.DELETE("/bankaccount/:id", handlers.DeleteCard) // delete card for a user
 }
 
 /*

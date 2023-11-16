@@ -29,7 +29,9 @@ func NewPostgres(cfg *config.Config) *gorm.DB {
 		// Convert URL to connection string
 		connStr := dsn.String()
 
-		db, err := gorm.Open(postgres.Open(connStr), &gorm.Config{})
+		db, err := gorm.Open(postgres.Open(connStr), &gorm.Config{
+			//Logger: logger.Default.LogMode(logger.Silent),
+		})
 		if err != nil {
 			log.Fatal("Failed to connect to the database:", err)
 		}
