@@ -8,7 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func SetUserAndBankForBankAccount(db *gorm.DB, bankAccount *models.BankAccount) error {
+func SetUserAndBankForBankAccount(db *gorm.DB, userID uint, bankAccount *models.BankAccount) error {
 
 	identity, bankName := utils.GetIdentityAndBank(bankAccount.Sheba)
 	if identity == "" || bankName == "" {
@@ -21,6 +21,9 @@ func SetUserAndBankForBankAccount(db *gorm.DB, bankAccount *models.BankAccount) 
 	bank, err := GetBank(db, "name", bankName)
 	if err != nil {
 		return errors.New("invalid sheba, bank name doesn't match by sheba")
+	}
+	if userID != user.ID {
+		return errors.New("UnAuthorize")
 	}
 	bankAccount.BankID = bank.ID
 	bankAccount.UserID = user.ID
@@ -64,9 +67,9 @@ func GetBankAccount(db *gorm.DB, fieldName, fieldValue string) (*models.BankAcco
 	return &bankAccount, nil
 }
 
-func CreateBankAccount(db *gorm.DB, sheba string) (*models.BankAccount, error) {
+func CreateBankAccount(db *gorm.DB, userID uint, sheba string) (*models.BankAccount, error) {
 	bankAccount := models.BankAccount{Sheba: sheba}
-	err := SetUserAndBankForBankAccount(db, &bankAccount)
+	err := SetUserAndBankForBankAccount(db, userID, &bankAccount)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +80,10 @@ func CreateBankAccount(db *gorm.DB, sheba string) (*models.BankAccount, error) {
 	return &bankAccount, nil
 }
 
-func DeleteBankAccount(db *gorm.DB, bankAccountID uint) error {
+func DeleteBankAccount(db *gorm.DB, userID, bankAccountID uint) error {
+	if _, err := GetSpecificBankAccount(db, userID, bankAccountID); err != nil {
+		return err
+	}
 	result := db.Delete(&models.BankAccount{}, bankAccountID)
 	if result.RowsAffected == 0 {
 		return errors.New("not found")

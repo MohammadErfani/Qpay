@@ -59,7 +59,7 @@ func FindCard(ctx echo.Context) error {
 func RegisterNewCard(ctx echo.Context) error {
 	db := database.DB()
 	var req BankAccountRequest
-	//var userID uint = 1 //user id ro bayad tashkhis bedim o inja vared konim.
+	var userID uint = 1 //user id ro bayad tashkhis bedim o inja vared konim.
 	if err := ctx.Bind(&req); err != nil {
 		return ctx.JSON(http.StatusBadRequest, "Bind Error")
 	}
@@ -70,8 +70,11 @@ func RegisterNewCard(ctx echo.Context) error {
 	if err := ValidateUniqueBankAccount(db, &req); err != nil {
 		return ctx.JSON(http.StatusConflict, err.Error())
 	}
-	_, err = services.CreateBankAccount(db, req.Sheba)
+	_, err = services.CreateBankAccount(db, userID, req.Sheba)
 	if err != nil {
+		if err.Error() == "UnAuthorize" {
+			return ctx.JSON(http.StatusForbidden, "sheba doesn't match your credential")
+		}
 		return ctx.JSON(http.StatusInternalServerError, "Internal server error in create bank account")
 	}
 	return ctx.JSON(http.StatusOK, "You're card is successfully registered!")
@@ -80,10 +83,11 @@ func RegisterNewCard(ctx echo.Context) error {
 func DeleteCard(ctx echo.Context) error {
 	db := database.DB()
 	cardID, err := strconv.Atoi(ctx.Param("id"))
+	var userID uint = 1
 	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, "bank account is not correct")
 	}
-	err = services.DeleteBankAccount(db, uint(cardID))
+	err = services.DeleteBankAccount(db, userID, uint(cardID))
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, err.Error())
 	}
