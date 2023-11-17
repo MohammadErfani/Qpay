@@ -9,14 +9,21 @@ import (
 	"testing"
 )
 
-// ReturnResult(sqlmock.NewResult(1, 1)) is saying that when the SQL statement
-// specified in ExpectExec is executed, it should return a result indicating that
-// it affected 1 row and the last insert ID is 1. This is a way to simulate the
-// result of a database operation for testing purposes.
 type UserSuite struct {
 	suite.Suite
 	DB   *gorm.DB
 	mock sqlmock.Sqlmock
+}
+
+var UserModel = models.User{
+	Name:        "John Doe",
+	Username:    "johndoe",
+	Email:       "john@example.com",
+	Password:    "hashedpassword",
+	PhoneNumber: "09125330680",
+	Identity:    "1234567890",
+	Address:     "123 Main St, City",
+	Role:        1,
 }
 
 func (suite *UserSuite) SetupTest() {
@@ -41,17 +48,7 @@ func (suite *UserSuite) TestCreateUser() {
 	suite.mock.ExpectCommit()
 
 	// Set up user data for testing
-	user := models.User{
-		// Populate with necessary user fields
-		Name:        "John Doe",
-		Username:    "johndoe",
-		Email:       "john@example.com",
-		Password:    "hashedpassword",
-		PhoneNumber: "123456789",
-		Identity:    "1234567890",
-		Address:     "123 Main St, City",
-		Role:        1,
-	}
+	user := UserModel
 
 	// Call the CreateUser function
 	createdUser, err := CreateUser(suite.DB, user)
@@ -64,16 +61,7 @@ func (suite *UserSuite) TestCreateUser() {
 }
 func (suite *UserSuite) TestGetUserByEmail_UserExists() {
 	email := "john@example.com"
-	expectedUser := &models.User{
-		Name:        "John Doe",
-		Username:    "johndoe",
-		Email:       "john@example.com",
-		Password:    "hashedpassword",
-		PhoneNumber: "123456789",
-		Identity:    "1234567890",
-		Address:     "123 Main St, City",
-		Role:        1,
-	}
+	expectedUser := &UserModel
 
 	rows := sqlmock.NewRows([]string{"name", "username", "email", "password", "phone_number", "identity", "address", "role"}).
 		AddRow(expectedUser.Name, expectedUser.Username, expectedUser.Email,
@@ -110,6 +98,105 @@ func (suite *UserSuite) TestGetUserByEmail_UserNotFound() {
 	require.Nil(user, "User should be nil")
 	require.Equal("user not found", err.Error(), "Error message should match")
 }
-func TestSuite(t *testing.T) {
+func (suite *UserSuite) TestGetUserByPhoneNumber_UserExist() {
+	phoneNumber := "09125330680"
+	expectedUser := &UserModel
+
+	rows := sqlmock.NewRows([]string{"name", "username", "email", "password", "phone_number", "identity", "address", "role"}).
+		AddRow(expectedUser.Name, expectedUser.Username, expectedUser.Email,
+			expectedUser.Password, expectedUser.PhoneNumber, expectedUser.Identity,
+			expectedUser.Address, expectedUser.Role)
+	suite.mock.ExpectQuery(`SELECT (.+) FROM "users" WHERE phone_number=\$1`).
+		WithArgs(phoneNumber).
+		WillReturnRows(rows)
+
+	user, err := GetUser(suite.DB, "phone_number", phoneNumber)
+
+	require := suite.Require()
+	require.NoError(err, "Unexpected error")
+	require.NotNil(user, "User should not be nil")
+	require.Equal(expectedUser, user, "Users should match")
+}
+func (suite *UserSuite) TestGetUserByPhoneNumber_UserNotFound() {
+	phoneNumber := "09125330680"
+
+	suite.mock.ExpectQuery(`SELECT (.+) FROM "users" WHERE phone_number=\$1`).
+		WithArgs(phoneNumber).
+		WillReturnError(gorm.ErrRecordNotFound)
+
+	user, err := GetUser(suite.DB, "phone_number", phoneNumber)
+
+	require := suite.Require()
+	require.Error(err, "Expected an error")
+	require.Nil(user, "User should be nil")
+	require.Equal("user not found", err.Error(), "Error message should match")
+}
+func (suite *UserSuite) TestGetUserByUserName_UserExist() {
+	userName := "johndoe"
+	expectedUser := &UserModel
+
+	rows := sqlmock.NewRows([]string{"name", "username", "email", "password", "phone_number", "identity", "address", "role"}).
+		AddRow(expectedUser.Name, expectedUser.Username, expectedUser.Email,
+			expectedUser.Password, expectedUser.PhoneNumber, expectedUser.Identity,
+			expectedUser.Address, expectedUser.Role)
+	suite.mock.ExpectQuery(`SELECT (.+) FROM "users" WHERE username=\$1`).
+		WithArgs(userName).
+		WillReturnRows(rows)
+
+	user, err := GetUser(suite.DB, "username", userName)
+
+	require := suite.Require()
+	require.NoError(err, "Unexpected error")
+	require.NotNil(user, "User should not be nil")
+	require.Equal(expectedUser, user, "Users should match")
+}
+func (suite *UserSuite) TestGetUserByUserName_UserNotFound() {
+	userName := "johndoe"
+
+	suite.mock.ExpectQuery(`SELECT (.+) FROM "users" WHERE username=\$1`).
+		WithArgs(userName).
+		WillReturnError(gorm.ErrRecordNotFound)
+
+	user, err := GetUser(suite.DB, "username", userName)
+
+	require := suite.Require()
+	require.Error(err, "Expected an error")
+	require.Nil(user, "User should be nil")
+	require.Equal("user not found", err.Error(), "Error message should match")
+}
+func (suite *UserSuite) TestGetUserByIdentity_UserExist() {
+	Identity := "1234567890"
+	expectedUser := &UserModel
+
+	rows := sqlmock.NewRows([]string{"name", "username", "email", "password", "phone_number", "identity", "address", "role"}).
+		AddRow(expectedUser.Name, expectedUser.Username, expectedUser.Email,
+			expectedUser.Password, expectedUser.PhoneNumber, expectedUser.Identity,
+			expectedUser.Address, expectedUser.Role)
+	suite.mock.ExpectQuery(`SELECT (.+) FROM "users" WHERE identity=\$1`).
+		WithArgs(Identity).
+		WillReturnRows(rows)
+
+	user, err := GetUser(suite.DB, "identity", Identity)
+
+	require := suite.Require()
+	require.NoError(err, "Unexpected error")
+	require.NotNil(user, "User should not be nil")
+	require.Equal(expectedUser, user, "Users should match")
+}
+func (suite *UserSuite) TestGetUserByIdentity_UserNotFound() {
+	Identity := "1234567890"
+
+	suite.mock.ExpectQuery(`SELECT (.+) FROM "users" WHERE identity=\$1`).
+		WithArgs(Identity).
+		WillReturnError(gorm.ErrRecordNotFound)
+
+	user, err := GetUser(suite.DB, "identity", Identity)
+
+	require := suite.Require()
+	require.Error(err, "Expected an error")
+	require.Nil(user, "User should be nil")
+	require.Equal("user not found", err.Error(), "Error message should match")
+}
+func TestUserSuite(t *testing.T) {
 	suite.Run(t, new(UserSuite))
 }
