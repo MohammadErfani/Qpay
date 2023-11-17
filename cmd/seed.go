@@ -31,13 +31,13 @@ func seed(configPath string) {
 	// seeding User
 	password, _ := utils.HashPassword("1234")
 	user := models.User{
-		Name:        "Mohammad Erfani",
-		Email:       "mohammad@gmail.com",
-		Username:    "mohammadErfani",
+		Name:        "Omid Moghadas",
+		Email:       "electromidz@gmail.com",
+		Username:    "o.moghadas",
 		Password:    password,
-		PhoneNumber: "09121111111",
-		Address:     "Tehran,...",
-		Identity:    "0441111111",
+		PhoneNumber: "09155225920",
+		Address:     "Mashhad",
+		Identity:    "9800",
 		Role:        models.IsNaturalPerson,
 	}
 	err := db.Where(models.User{Email: user.Email}).Or(models.User{PhoneNumber: user.PhoneNumber}).Or(models.User{Username: user.Username}).FirstOrCreate(&user).Error
