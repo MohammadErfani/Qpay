@@ -1,15 +1,20 @@
 package routes
 
 import (
+	"Qpay/database"
 	"Qpay/server/handlers"
 	echo "github.com/labstack/echo/v4"
 )
 
 func BankAccountGroup(bc *echo.Group) {
-	bc.GET("/bankaccount", handlers.ListAllCards)      // List all cards
-	bc.GET("/bankaccount/:id", handlers.FindCard)      // find a card
-	bc.POST("/bankaccount", handlers.RegisterNewCard)  // register card for a user
-	bc.DELETE("/bankaccount/:id", handlers.DeleteCard) // delete card for a user
+	ba := &handlers.BankAccountHandler{
+		DB:     database.DB(),
+		UserID: 1,
+	}
+	bc.GET("/bankaccount", ba.ListAllBankAccounts)      // List all cards
+	bc.GET("/bankaccount/:id", ba.FindBankAccount)      // find a card
+	bc.POST("/bankaccount", ba.RegisterNewBankAccount)  // register card for a user
+	bc.DELETE("/bankaccount/:id", ba.DeleteBankAccount) // delete card for a user
 }
 
 /*
