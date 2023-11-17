@@ -27,6 +27,19 @@ type RegisterResponse struct {
 	Message string
 }
 
+// @Summary Create a new user
+// @tags Register
+// @Description Create a new user
+// @ID create-user
+// @Accept  json
+// @Produce  json
+// @Param body body RegisterRequest true "User registration request"
+// @Success 201 {object} RegisterResponse
+// @Failure 400 {string} string "Bad Request"
+// @Failure 403 {string} string "validation error"
+// @Failure 409 {string} string "duplicate email, username, phone or identity"
+// @Failure 500 {string} string "Internal Server Error"
+// @Router /api/v1/register [post]
 func CreateUser(ctx echo.Context) error {
 	db := database.DB()
 	var req RegisterRequest

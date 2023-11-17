@@ -1,71 +1,80 @@
-swagger: "2.0"
+definitions:
+  handlers.RegisterRequest:
+    properties:
+      address:
+        type: string
+      email:
+        type: string
+      identity:
+        type: string
+      is_company:
+        description: 0 , 1 , 2
+        type: boolean
+      name:
+        type: string
+      password:
+        type: string
+      phone_number:
+        type: string
+      username:
+        type: string
+    required:
+    - address
+    - email
+    - identity
+    - is_company
+    - name
+    - password
+    - phone_number
+    - username
+    type: object
+  handlers.RegisterResponse:
+    properties:
+      message:
+        type: string
+      status:
+        type: string
+    type: object
 info:
-  title: "Qpay API"
-  version: "1.0.0"
-
+  contact: {}
 paths:
   /api/v1/register:
     post:
-      summary: "Create a new user"
       consumes:
-        - "application/json"
-      produces:
-        - "application/json"
+      - application/json
+      description: Create a new user
+      operationId: create-user
       parameters:
-        - in: "body"
-          name: "body"
-          description: "User registration request"
-          required: true
-          schema:
-            $ref: "#/definitions/RegisterRequest"
+      - description: User registration request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.RegisterRequest'
+      produces:
+      - application/json
       responses:
-        201:
-          description: "User created successfully"
+        "201":
+          description: Created
           schema:
-            $ref: "#/definitions/RegisterResponse"
-        400:
-          description: "Bad Request"
-        403:
-          description: "validation error"
-        409:
-          description: "duplicate email, username, phone or identity"
-        500:
-          description: "Internal Server Error"
-
-definitions:
-  RegisterRequest:
-    type: "object"
-    properties:
-      name:
-        type: "string"
-      username:
-        type: "string"
-      email:
-        type: "string"
-      password:
-        type: "string"
-      phone_number:
-        type: "string"
-      identity:
-        type: "string"
-      address:
-        type: "string"
-      is_company:
-        type: "boolean"
-    required:
-      - name
-      - username
-      - email
-      - password
-      - phone_number
-      - identity
-      - address
-      - is_company
-
-  RegisterResponse:
-    type: "object"
-    properties:
-      status:
-        type: "string"
-      message:
-        type: "string"
+            $ref: '#/definitions/handlers.RegisterResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "403":
+          description: validation error
+          schema:
+            type: string
+        "409":
+          description: duplicate email, username, phone or identity
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Create a new user
+      tags:
+      - Register
+swagger: "2.0"
