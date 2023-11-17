@@ -120,7 +120,7 @@ func seed(configPath string) {
 	bankAccount := models.BankAccount{
 		Sheba: "101104411111111234123412",
 	}
-	err = services.SetUserAndBankForBankAccount(db, &bankAccount)
+	err = services.SetUserAndBankForBankAccount(db, user.ID, &bankAccount)
 	if err != nil {
 		log.Fatal("Error in Sheba: ", err)
 	}
