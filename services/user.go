@@ -37,12 +37,3 @@ func GetUserByEmail(db *gorm.DB, email string) (*models.User, error) {
 	}
 	return &dbUser, nil
 }
-func GetUserByUsername(db *gorm.DB, username string) (*models.User, error) {
-	var dbUser models.User
-	err := db.First(&dbUser, "username=?", username).Error
-	if err != nil {
-		return nil, errors.New("user not found")
-	}
-
-	return &dbUser, nil
-}
