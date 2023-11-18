@@ -19,3 +19,15 @@ type Gateway struct {
 	Status        uint8
 	Type          uint8
 }
+
+const (
+	StatusGatewayActive = iota
+	StatusGatewayInActive
+	StatusGatewayUnapproved
+	StatusGatewayDraft
+)
+
+const (
+	PersonalTypeGateway = iota
+	CompanyTypeGateway
+)

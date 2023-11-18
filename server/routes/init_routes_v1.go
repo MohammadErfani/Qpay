@@ -16,5 +16,6 @@ func InitRoutesV1() *echo.Echo {
 	UserGroup(v1)
 	AuthGroup(v1)
 	BankAccountGroup(v1)
+	GatewayGroup(v1)
 	return e
 }

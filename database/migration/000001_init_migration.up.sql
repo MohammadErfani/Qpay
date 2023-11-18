@@ -33,7 +33,17 @@ CREATE TABLE "bank_accounts" (
   "updated_at" timestamp with time zone,
   "deleted_at" timestamp with time zone
 );
-
+CREATE TABLE "blinks" (
+  "id" serial PRIMARY KEY,
+  "user_id" integer,
+  "name" varchar,
+  "price" integer,
+  "status" integer,
+  "type" integer,
+  "created_at" timestamp with time zone,
+  "updated_at" timestamp with time zone,
+  "deleted_at" timestamp with time zone
+);
 CREATE TABLE "gateways" (
   "id" serial PRIMARY KEY,
   "user_id" integer,
