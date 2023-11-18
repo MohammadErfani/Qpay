@@ -54,13 +54,12 @@ func FindGateway(ctx echo.Context) error {
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, "You're Gateway is not exist!")
 	}
-	bankAccountResponse := SetGatewayResponse(gateway)
-	return ctx.JSON(http.StatusOK, bankAccountResponse)
+	return ctx.JSON(http.StatusOK, SetGatewayResponse(gateway))
 }
 
 func RegisterNewGateway(ctx echo.Context) error {
 	db := database.DB()
-	var req GatewayResponse
+	var req GatewayRequest
 	var userID uint = 1 //user id ro bayad tashkhis bedim o inja vared konim.
 	if err := ctx.Bind(&req); err != nil {
 		return ctx.JSON(http.StatusBadRequest, "Bind Error")
@@ -72,14 +71,14 @@ func RegisterNewGateway(ctx echo.Context) error {
 	if err := ValidateUniqueGateway(db, &req); err != nil {
 		return ctx.JSON(http.StatusConflict, err.Error())
 	}
-	_, err = services.CreateBankAccount(db, userID, req.Sheba)
+	_, err = services.CreateGateway(db, userID, req.Name)
 	if err != nil {
 		if err.Error() == "UnAuthorize" {
-			return ctx.JSON(http.StatusForbidden, "sheba doesn't match your credential")
+			return ctx.JSON(http.StatusForbidden, "gateway doesn't match your credential")
 		}
-		return ctx.JSON(http.StatusInternalServerError, "Internal server error in create bank account")
+		return ctx.JSON(http.StatusInternalServerError, "Internal server error in gateway")
 	}
-	return ctx.JSON(http.StatusOK, "You're card is successfully registered!")
+	return ctx.JSON(http.StatusOK, "You're gateway is successfully registered!")
 }
 
 func ValidateUniqueGateway(db *gorm.DB, gateway *GatewayRequest) error {

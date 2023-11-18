@@ -22,26 +22,26 @@ func GetUserGateways(db *gorm.DB, userID uint) ([]models.Gateway, error) {
 	return gateways, nil
 }
 
-func SetUserAndBankForGateway(db *gorm.DB, userID uint, bankAccount *models.Gateway) error {
+func SetUserAndBankForGateway(db *gorm.DB, userID uint, gateway *models.Gateway) error {
 
-	identity, bankName := utils.GetIdentityAndBank(bankAccount.Sheba)
-	if identity == "" || bankName == "" {
-		return errors.New("sheba is incorrect")
+	identity, gatewayName := utils.GetIdentityAndBank(gateway.Name)
+	if identity == "" || gatewayName == "" {
+		return errors.New("gateway is incorrect")
 	}
 	user, err := GetUser(db, "identity", identity)
 	if err != nil {
-		return errors.New("invalid sheba, identity doesn't match by sheba")
+		return errors.New("invalid gateway, identity doesn't match by gateway")
 	}
-	bank, err := GetGateway(db, "name", bankName)
+	gat, err := GetGateway(db, "name", gatewayName)
 	if err != nil {
-		return errors.New("invalid sheba, bank name doesn't match by sheba")
+		return errors.New("invalid gateway")
 	}
 	if userID != user.ID {
 		return errors.New("UnAuthorize")
 	}
-	bankAccount.BankID = bank.ID
-	bankAccount.UserID = user.ID
-	bankAccount.AccountOwner = user.Name
+	gateway.ID = gat.ID
+	gateway.UserID = user.ID
+	gateway.BankAccountID = gat.BankAccountID
 	return nil
 }
 
