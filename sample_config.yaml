@@ -7,3 +7,8 @@ database:
 
 server:
   port: 8000
+
+admin:
+  name: go fellas
+  email: go.fellas@gmail.com
+  password: password

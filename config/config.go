@@ -10,6 +10,7 @@ import (
 type Config struct {
 	Database Database
 	Server   Server
+	Admin    Admin
 }
 type Database struct {
 	Host     string
@@ -20,6 +21,13 @@ type Database struct {
 }
 type Server struct {
 	Port int
+}
+
+type Admin struct {
+	Name     string
+	Username string
+	Password string
+	Email    string
 }
 
 var (
@@ -44,9 +52,16 @@ func InitConfig(configPath string) *Config {
 		srv := Server{
 			Port: viper.GetInt("server.port"),
 		}
+		admin := Admin{
+			Name:     viper.GetString("admin.name"),
+			Username: viper.GetString("admin.username"),
+			Email:    viper.GetString("admin.email"),
+			Password: viper.GetString("admin.password"),
+		}
 		configInstance = &Config{
 			Database: db,
 			Server:   srv,
+			Admin:    admin,
 		}
 		fmt.Println("config initialized")
 	})

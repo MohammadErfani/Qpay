@@ -128,5 +128,17 @@ func seed(configPath string) {
 	if err != nil {
 		log.Fatal("error seeding bank account", err)
 	}
+
+	admin := models.User{
+		Name:     cfg.Admin.Name,
+		Email:    cfg.Admin.Email,
+		Username: cfg.Admin.Username,
+		Role:     models.IsAdmin,
+	}
+	admin.Password, _ = utils.HashPassword(cfg.Admin.Password)
+	err = db.Where("email=?", admin.Email).Or("username=?", admin.Username).FirstOrCreate(&admin).Error
+	if err != nil {
+		log.Fatal("error seeding admin", err)
+	}
 	//err = db.FirstOrCreate(&bankAccount).Error
 }
