@@ -102,7 +102,7 @@ func SetGatewayResponse(gateway models.Gateway) GatewayResponse {
 	if gateway.Type == models.PersonalTypeGateway {
 		GatewayType = "Personal"
 	} else if gateway.Type == models.CompanyTypeGateway {
-		GatewayType = "inactive"
+		GatewayType = "Company"
 	}
 	return GatewayResponse{
 		UserID:        gateway.UserID,
