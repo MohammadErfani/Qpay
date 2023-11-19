@@ -45,7 +45,6 @@ func SetUserAndBankForGateway(db *gorm.DB, userID uint, gateway *models.Gateway)
 	return nil
 }
 
-// normal
 func GetSpecificGateway(db *gorm.DB, userID, gatewayID uint) (models.Gateway, error) {
 	var gateway models.Gateway
 	err := db.Where("id=? AND user_id=?", gatewayID, userID).Preload("User").First(&gateway).Error

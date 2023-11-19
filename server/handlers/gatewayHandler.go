@@ -13,7 +13,10 @@ import (
 )
 
 type GatewayRequest struct {
-	Name string `json:"name" xml:"name" form:"name" query:"name"`
+	Name          string `json:"name" xml:"name" form:"name" query:"name"`
+	Logo          string `json:"logo" xml:"logo" form:"logo" query:"logo"`
+	Route         string `json:"route" xml:"route" form:"route" query:"route"`
+	BankAccountID uint   `json:"bank_id" xml:"bank_id" form:"bank_id" query:"bank_id"`
 }
 
 type GatewayResponse struct {
@@ -48,7 +51,7 @@ func FindGateway(ctx echo.Context) error {
 	var userID uint = 1
 	gatewayID, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, "bank gateway is not correct")
+		return ctx.JSON(http.StatusBadRequest, "gateway is not correct")
 	}
 	gateway, err = services.GetSpecificGateway(db, userID, uint(gatewayID))
 	if err != nil {
