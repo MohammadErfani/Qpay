@@ -67,6 +67,7 @@ func RegisterNewGateway(ctx echo.Context) error {
 	if err := ctx.Bind(&req); err != nil {
 		return ctx.JSON(http.StatusBadRequest, "Bind Error")
 	}
+	// Ta inja barrasi shod
 	err := utils.CheckGateway(req.Name)
 	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, err.Error())
