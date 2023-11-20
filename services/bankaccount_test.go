@@ -2,10 +2,12 @@ package services
 
 import (
 	"Qpay/models"
+	"bou.ke/monkey"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/suite"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"regexp"
 	"testing"
 )
 
@@ -105,6 +107,30 @@ func (suite *BankAccountTestSuite) TestGetSpecificBankAccount_UserIDAndBankAccou
 	require.Error(err, "expect an  error")
 	require.Equal(models.BankAccount{}, bankAccount, "Bank account should be empty")
 	require.Equal("bank Account Not found", err.Error(), "Error message should match")
+}
+func (suite *BankAccountTestSuite) TestCreateBankAccount() {
+	userID := uint(1)
+	sheba := "IR123456789012345678901234"
+
+	// Patch SetUserAndBankForBankAccount
+	monkey.Patch(SetUserAndBankForBankAccount, func(db *gorm.DB, userID uint,
+		bankAccount *models.BankAccount) error {
+		return nil
+	})
+	defer monkey.Unpatch(SetUserAndBankForBankAccount)
+	suite.mock.ExpectBegin()
+	suite.mock.ExpectQuery(
+		regexp.QuoteMeta(`INSERT INTO "bank_accounts"`)).
+		WillReturnRows(sqlmock.NewRows([]string{"id"}))
+	suite.mock.ExpectCommit()
+
+	createdBankAccount, err := CreateBankAccount(suite.DB, userID, sheba)
+	createdBankAccount.ID = 1
+	require := suite.Require()
+	require.NoError(err, "Unexpected error")
+	require.NotNil(createdBankAccount, "Expected a non-nil bank account")
+	require.NotZero(createdBankAccount.ID, "Expected a non-zero bank account ID")
+	require.NoError(suite.mock.ExpectationsWereMet())
 }
 
 func TestBankAccountSuite(t *testing.T) {
