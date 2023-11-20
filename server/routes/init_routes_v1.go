@@ -7,11 +7,15 @@ import (
 
 	// "github.com/golang-jwt/jwt/v5"
 	// "github.com/labstack/echo-jwt/v4"
+
+	"Qpay/config"
+
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 )
 
 // InitRoutesV1 version 1 api routes:
-func InitRoutesV1() *echo.Echo {
+func InitRoutesV1(db *gorm.DB, cfg *config.Config) *echo.Echo {
 
 	e := echo.New()
 
@@ -23,6 +27,7 @@ func InitRoutesV1() *echo.Echo {
 
 	// test
 	v1.GET("/test", func(ctx echo.Context) error {
+		// v1.POST("/login")
 		// token, ok := ctx.Get("user").(*jwt.Token) // key for example at this context is user
 		// if !ok {
 		// 	return errors.New("JWT token missing or invalid")
@@ -37,6 +42,6 @@ func InitRoutesV1() *echo.Echo {
 		return nil
 	})
 	UserGroup(v1)
-	AuthGroup(v1)
+	AuthGroup(v1, db, cfg)
 	return e
 }

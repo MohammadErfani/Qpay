@@ -15,7 +15,7 @@ func IsValidEmail(email string) error {
 	return nil
 }
 func IsValidPhoneNumber(phoneNumber string) error {
-	//regexPattern := `^\d{9}$`
+	// regexPattern := `^\d{9}$`
 	regexPattern := `^(\+98|0)?9\d{9}$`
 	phoneNumberRegex := regexp.MustCompile(regexPattern)
 	if !phoneNumberRegex.MatchString(phoneNumber) {

@@ -2,30 +2,63 @@ package utils
 
 import (
 	"Qpay/config"
-	"github.com/golang-jwt/jwt/v4"
+	"Qpay/models"
+	"errors"
 	"time"
+
+	"github.com/golang-jwt/jwt/v4"
+	"gorm.io/gorm"
 )
 
-// strconv.FormatInt(time.Now().UTC().UnixNano(), 10) `json:"expired_at"`
 type Credential struct {
-	email          string    `json:"email"`
+	Name           string    `json:"name"`
+	Email          string    `json:"email"`
+	PhoneNumber    string    `json:"PhoneNumber"`
+	Identity       string    `json:"Identity"`
 	ExpirationTime time.Time `json:"expired_at"`
 	jwt.RegisteredClaims
 }
 
-func newCredential(email string, duration time.Duration) *Credential {
+func newCredential(user *models.User, duration time.Duration) *Credential {
 	cred := &Credential{
-		email:          email,
+		Name:           user.Name,
+		Email:          user.Email,
+		PhoneNumber:    user.PhoneNumber,
+		Identity:       user.Identity,
 		ExpirationTime: time.Now().Add(duration),
 	}
 
 	return cred
 }
 
-func CreateToken(config *config.JWT, email string) (string, error) {
-	cred := newCredential(email, config.ExpirationTime)
+func CreateToken(config *config.JWT, user *models.User) (string, error) {
+	cred := newCredential(user, config.ExpirationTime)
+
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, cred)
 
 	return token.SignedString([]byte(config.SecretKey))
+}
 
+func GetUser(db *gorm.DB, email, phoneNumber, password string) (*models.User, error) {
+	var dbUser models.User
+
+	if email != "" {
+		result := db.First(&dbUser, "Email= ?", email)
+		if result.RowsAffected == 0 {
+			return nil, errors.New("User not found!")
+		}
+	} else if phoneNumber != "" && email == "" {
+		result := db.First(&dbUser, "phone_number= ?", email)
+		if result.RowsAffected == 0 {
+			return nil, errors.New("User not found!")
+		}
+	}
+
+	passChecker := CheckPassword(password, dbUser.Password)
+
+	if passChecker {
+		return &dbUser, nil
+	}
+
+	return nil, errors.New("Password not correct")
 }
