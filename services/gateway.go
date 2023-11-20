@@ -57,14 +57,13 @@ func GetGateway(db *gorm.DB, fieldName, fieldValue string) (*models.Gateway, err
 	var gateway models.Gateway
 	err := db.First(&gateway, fmt.Sprintf("%s=?", fieldName), fieldValue).Error
 	if err != nil {
-		return nil, errors.New("gateway not found")
+		return nil, errors.New("record not found")
 	}
 	return &gateway, nil
 }
 
-// should tested
-func CreateGateway(db *gorm.DB, userID uint, name string) (*models.Gateway, error) {
-	gateway := models.Gateway{Name: name}
+func CreateGateway(db *gorm.DB, userID uint, name, route, logo string, bankaccountid uint) (*models.Gateway, error) {
+	gateway := models.Gateway{Name: name, Route: route, Logo: logo, BankAccountID: bankaccountid}
 	err := SetUserAndBankForGateway(db, userID, &gateway)
 	if err != nil {
 		return nil, err
@@ -74,4 +73,13 @@ func CreateGateway(db *gorm.DB, userID uint, name string) (*models.Gateway, erro
 		return nil, err
 	}
 	return &gateway, nil
+}
+
+func BlinkCheck(db *gorm.DB, fieldName, fieldValue string) (*models.Blinks, error) {
+	var blink models.Blinks
+	err := db.First(&blink, fmt.Sprintf("%s=?", fieldName), fieldValue).Error
+	if err != nil {
+		return nil, errors.New("the field name not found")
+	}
+	return &blink, nil
 }

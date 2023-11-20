@@ -67,15 +67,23 @@ func RegisterNewGateway(ctx echo.Context) error {
 	if err := ctx.Bind(&req); err != nil {
 		return ctx.JSON(http.StatusBadRequest, "Bind Error")
 	}
-	// Ta inja barrasi shod
 	err := utils.CheckGateway(req.Name)
 	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, err.Error())
 	}
+	_, err = services.BlinkCheck(db, "route", req.Route)
+	if err != nil {
+		// inja yani route ii ke karbar entekhab kard e poooli hast
+		// hala bayad check besh e in route ghablan kharidari shod e ya na?
+		// age in route kharidari nashod e be hamoon andaz e Price bayad yek transaction manfi tooy e
+		//dargha taraf lahaz besh e
+		return ctx.JSON(http.StatusBadRequest, err.Error())
+	}
+
 	if err := ValidateUniqueGateway(db, &req); err != nil {
 		return ctx.JSON(http.StatusConflict, err.Error())
 	}
-	_, err = services.CreateGateway(db, userID, req.Name)
+	_, err = services.CreateGateway(db, userID, req.Name, req.Route, req.Logo, req.BankAccountID)
 	if err != nil {
 		if err.Error() == "UnAuthorize" {
 			return ctx.JSON(http.StatusForbidden, "gateway doesn't match your credential")
@@ -88,6 +96,9 @@ func RegisterNewGateway(ctx echo.Context) error {
 func ValidateUniqueGateway(db *gorm.DB, gateway *GatewayRequest) error {
 	if _, err := services.GetGateway(db, "name", gateway.Name); err == nil {
 		return errors.New("name already exist")
+	}
+	if _, err := services.GetGateway(db, "route", gateway.Route); err == nil {
+		return errors.New("route already exist")
 	}
 	return nil
 }
