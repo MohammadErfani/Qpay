@@ -54,10 +54,17 @@ func InitConfig(configPath string) *Config {
 		srv := Server{
 			Port: viper.GetInt("server.port"),
 		}
+
+		jwt := JWT{
+			SecretKey:      viper.GetString("auth.secret-key"),
+			ExpirationTime: viper.GetDuration("auth.expiresIn"),
+		}
 		configInstance = &Config{
 			Database: db,
 			Server:   srv,
+			JWT:      jwt,
 		}
+
 		fmt.Println("config initialized")
 	})
 	return configInstance

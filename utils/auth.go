@@ -35,6 +35,7 @@ func CreateToken(config *config.JWT, user *models.User) (string, error) {
 	cred := newCredential(user, config.ExpirationTime)
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, cred)
+	println(config.SecretKey)
 
 	return token.SignedString([]byte(config.SecretKey))
 }
