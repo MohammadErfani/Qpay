@@ -71,14 +71,6 @@ func RegisterNewGateway(ctx echo.Context) error {
 	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, err.Error())
 	}
-	_, err = services.BlinkCheck(db, "route", req.Route)
-	if err != nil {
-		// inja yani route ii ke karbar entekhab kard e poooli hast
-		// hala bayad check besh e in route ghablan kharidari shod e ya na?
-		// age in route kharidari nashod e be hamoon andaz e Price bayad yek transaction manfi tooy e
-		//dargha taraf lahaz besh e
-		return ctx.JSON(http.StatusBadRequest, err.Error())
-	}
 
 	if err := ValidateUniqueGateway(db, &req); err != nil {
 		return ctx.JSON(http.StatusConflict, err.Error())

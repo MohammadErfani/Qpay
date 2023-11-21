@@ -14,7 +14,6 @@ type User struct {
 	Identity     string `gorm:"type:varchar(50);unique"`
 	Address      string `gorm:"type:text;unique"`
 	Role         uint8
-	Blink        uint8
 	Gateways     []Gateway
 	BankAccounts []BankAccount
 }
@@ -31,8 +30,3 @@ func SetRole(isCompany bool) uint8 {
 	}
 	return IsNaturalPerson
 }
-
-const (
-	UserHaventBlink = iota
-	UserHaveBlink
-)

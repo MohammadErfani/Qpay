@@ -74,12 +74,3 @@ func CreateGateway(db *gorm.DB, userID uint, name, route, logo string, bankaccou
 	}
 	return &gateway, nil
 }
-
-func BlinkCheck(db *gorm.DB, fieldName, fieldValue string) (*models.Blinks, error) {
-	var blink models.Blinks
-	err := db.First(&blink, fmt.Sprintf("%s=?", fieldName), fieldValue).Error
-	if err != nil {
-		return nil, errors.New("the field name not found")
-	}
-	return &blink, nil
-}
