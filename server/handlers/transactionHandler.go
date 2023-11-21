@@ -9,27 +9,29 @@ type TransactionRequest struct {
 	GatewayID     uint    `json:"gateway_id"`
 	PaymentAmount float64 `json:"payment_amount"`
 }
-type TransHandler struct {
+type TransactionHandler struct {
 	DB     *gorm.DB
 	UserID uint
 }
 
-func (gh *GatewayHandler) ListAllTransaction(ctx echo.Context) error {
+func (tr *TransactionHandler) ListAllTransaction(ctx echo.Context) error {
 	return nil
 }
 
-func (gh *GatewayHandler) FindTransaction(ctx echo.Context) error {
+func (tr *TransactionHandler) FindTransaction(ctx echo.Context) error {
 	return nil
 }
 
-func (gh *GatewayHandler) FilterTransaction(ctx echo.Context) {
+func (tr *TransactionHandler) FilterTransaction(ctx echo.Context) error {
 	//	امکان فیلتر کردن تراکنش‌ها بر حسب تاریخ و یا قیمت (بازه زمانی و یا قیمتی)
+	return nil
 }
-func (gh *GatewayHandler) SearchTransaction(ctx echo.Context) {
+func (tr *TransactionHandler) SearchTransaction(ctx echo.Context) error {
 	//	امکان جستجو در تراکنش‌های ثبت شده بر حسب تاریخ و یا قیمت (بازه زمانی و یا قیمتی)
+	return nil
 }
 
-func (gh *GatewayHandler) RequestPersonalTransaction(ctx echo.Context) {
+func (tr *TransactionHandler) RequestPersonalTransaction(ctx echo.Context) error {
 	// دریافت پست مقادیر زیر
 	//	آدرس درگاه - Route
 	//	مقدار پرداخت
@@ -37,9 +39,10 @@ func (gh *GatewayHandler) RequestPersonalTransaction(ctx echo.Context) {
 
 	//	ریسپانس مقادیر زیر
 	//	آی دی تراکنش
+	return nil
 }
 
-func (gh *GatewayHandler) RequestBusinessTransaction(ctx echo.Context) {
+func (tr *TransactionHandler) RequestBusinessTransaction(ctx echo.Context) error {
 	// دریافت پست مقادیر زیر
 	//	آی دی درگاه
 	//	مقدار پرداخت
@@ -47,9 +50,10 @@ func (gh *GatewayHandler) RequestBusinessTransaction(ctx echo.Context) {
 
 	//	ریسپانس مقادیر زیر
 	//	آی دی تراکنش
+	return nil
 }
 
-func (gh *GatewayHandler) BeginTransaction(ctx echo.Context) {
+func (tr *TransactionHandler) BeginTransaction(ctx echo.Context) error {
 	// دریافت پست مقادیر زیر
 	// شماره تراکنش
 	//	شماره کارت
@@ -66,10 +70,11 @@ func (gh *GatewayHandler) BeginTransaction(ctx echo.Context) {
 	//	مبلغ پرداخت شده
 	//	کپی و پیست آدرس بازگشتی
 	//	۴ رقم آخر شماره کارت - یا برای ساده تر شدن کل شماره کارت
+	return nil
 
 }
 
-func (gh *GatewayHandler) VerifyTransaction(ctx echo.Context) {
+func (tr *TransactionHandler) VerifyTransaction(ctx echo.Context) error {
 	// دریافت مقادیر زیر جهت تایید وضعیت تراکنش
 	//	شماره تراکنش
 
@@ -78,4 +83,5 @@ func (gh *GatewayHandler) VerifyTransaction(ctx echo.Context) {
 	//	۴ رقم آخر شماره کارت - یا برای سایده تر شدن کل شماره کارت
 	//	تاریخ و ساعت کم شدن پول
 	//	مبلغ پرداخت شده
+	return nil
 }
