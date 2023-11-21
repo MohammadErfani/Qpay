@@ -31,10 +31,11 @@ func (tr *TransactionHandler) SearchTransaction(ctx echo.Context) error {
 	return nil
 }
 
-func (tr *TransactionHandler) RequestPersonalTransaction(ctx echo.Context) error {
+func (tr *TransactionHandler) CreateTransaction(ctx echo.Context) error {
 	// دریافت پست مقادیر زیر
-	//	آدرس درگاه - Route - باید به آی دی تبدیل بشه
+	// گرفتن درگاه بر اساس route
 	//	مقدار پرداخت
+	// ست کردن مبلغ commission
 	//	شماره موبایل
 
 	//	ریسپانس مقادیر زیر
@@ -42,17 +43,32 @@ func (tr *TransactionHandler) RequestPersonalTransaction(ctx echo.Context) error
 	return nil
 }
 
-func (tr *TransactionHandler) RequestBusinessTransaction(ctx echo.Context) error {
-	// دریافت پست مقادیر زیر
-	//	آی دی درگاه merchantId
-	//	مقدار پرداخت
-	//	شماره موبایل
+//	func (tr *TransactionHandler) RequestPersonalTransaction(ctx echo.Context) error {
+//		// دریافت پست مقادیر زیر
+//		//	آدرس درگاه - Route - باید به آی دی تبدیل بشه
+//		//	مقدار پرداخت
+//		//	شماره موبایل
+//
+//		//	ریسپانس مقادیر زیر
+//		//	آی دی تراکنش
+//		return nil
+//	}
+//
+//	func (tr *TransactionHandler) RequestBusinessTransaction(ctx echo.Context) error {
+//		// دریافت پست مقادیر زیر
+//		//	آی دی درگاه merchantId
+//		//	مقدار پرداخت
+//		//	شماره موبایل
+//
+//		//	ریسپانس مقادیر زیر
+//		//	آی دی تراکنش
+//		return nil
+//	}
+func (tr *TransactionHandler) GetTransactionForStart(ctx echo.Context) error {
+	// response:
 
-	//	ریسپانس مقادیر زیر
-	//	آی دی تراکنش
 	return nil
 }
-
 func (tr *TransactionHandler) BeginTransaction(ctx echo.Context) error {
 	// دریافت پست مقادیر زیر
 	// شماره تراکنش
