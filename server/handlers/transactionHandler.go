@@ -33,7 +33,7 @@ func (tr *TransactionHandler) SearchTransaction(ctx echo.Context) error {
 
 func (tr *TransactionHandler) RequestPersonalTransaction(ctx echo.Context) error {
 	// دریافت پست مقادیر زیر
-	//	آدرس درگاه - Route
+	//	آدرس درگاه - Route - باید به آی دی تبدیل بشه
 	//	مقدار پرداخت
 	//	شماره موبایل
 
@@ -44,7 +44,7 @@ func (tr *TransactionHandler) RequestPersonalTransaction(ctx echo.Context) error
 
 func (tr *TransactionHandler) RequestBusinessTransaction(ctx echo.Context) error {
 	// دریافت پست مقادیر زیر
-	//	آی دی درگاه
+	//	آی دی درگاه merchantId
 	//	مقدار پرداخت
 	//	شماره موبایل
 
