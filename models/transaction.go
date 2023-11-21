@@ -30,4 +30,5 @@ const (
 	ReturnToGateway
 	AwaitingConfirmation
 	Confirmed
+	newConst
 )
