@@ -1,17 +1,16 @@
 package middlewares
 
 import (
-	"Qpay/config"
 
-	echo "github.com/labstack/echo/v4"
-	"gorm.io/gorm"
+echo "github.com/labstack/echo/v4"
 )
 
-type Auth struct {
-	DB  *gorm.DB
-	JWT *config.JWT
-}
+// type Auth struct {
+// 	DB  *gorm.DB
+// 	JWT *config.JWT
+// }
 
-func (a *Auth) AuthMiddleware(next echo.Context) error {
-	return nil
+func AuthMiddleware(c echo.HandlerFunc) echo.HandlerFunc{
+  return nil
+ 
 }
