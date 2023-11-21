@@ -29,5 +29,12 @@ const (
 
 const (
 	PersonalTypeGateway = iota
-	CompanyTypeGateway
+	BusinessTypeGateway
 )
+
+func SetGatewayType(isPersonal bool) uint8 {
+	if isPersonal {
+		return PersonalTypeGateway
+	}
+	return BusinessTypeGateway
+}
