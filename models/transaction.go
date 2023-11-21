@@ -13,3 +13,15 @@ type Transaction struct {
 	OwnerBankAccount     string `gorm:"type:varchar(50)"`
 	PurchaserBankAccount string `gorm:"type:varchar(50)"`
 }
+
+const (
+	NotPaid = iota
+	NotSuccessfully
+	IssueOccurred
+	Blocked
+	Refund
+	Cancelled
+	ReturnToGateway
+	AwaitingConfirmation
+	Confirmed
+)
