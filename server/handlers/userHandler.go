@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"Qpay/database"
 	"Qpay/models"
 	"Qpay/services"
 	"Qpay/utils"
@@ -22,13 +21,15 @@ type RegisterRequest struct {
 	Address     string `json:"address" binding:"required"`
 	IsCompany   bool   `json:"is_company" binding:"required"` // 0 , 1 , 2
 }
+type UserHandler struct {
+	DB *gorm.DB
+}
 type RegisterResponse struct {
 	Status  string
 	Message string
 }
 
-func CreateUser(ctx echo.Context) error {
-	db := database.DB()
+func (userH *UserHandler) CreateUser(ctx echo.Context) error {
 	var req RegisterRequest
 	if err := ctx.Bind(&req); err != nil {
 		return ctx.JSON(http.StatusBadRequest, "Bind Error")
@@ -36,7 +37,7 @@ func CreateUser(ctx echo.Context) error {
 	if err := ValidateUser(&req); err != nil {
 		return ctx.JSON(http.StatusForbidden, err.Error())
 	}
-	if err := ValidateUserUnique(db, &req); err != nil {
+	if err := ValidateUserUnique(userH.DB, &req); err != nil {
 		return ctx.JSON(http.StatusConflict, err.Error())
 	}
 	user := models.User{
@@ -49,7 +50,7 @@ func CreateUser(ctx echo.Context) error {
 		Address:     req.Address,
 		Role:        models.SetRole(req.IsCompany),
 	}
-	_, err := services.CreateUser(db, user)
+	_, err := services.CreateUser(userH.DB, user)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, "Internal server error in create user ")
 	}
