@@ -62,3 +62,7 @@ func GetUser(db *gorm.DB, email, phoneNumber, password string) (*models.User, er
 
 	return nil, errors.New("Password not correct")
 }
+
+func ValidationToken (token string) error {
+  return nil
+}
