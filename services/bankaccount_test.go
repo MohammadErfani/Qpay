@@ -2,10 +2,12 @@ package services
 
 import (
 	"Qpay/models"
+	"bou.ke/monkey"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/suite"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"regexp"
 	"testing"
 )
 
@@ -18,10 +20,10 @@ var BA1 = models.BankAccount{
 }
 var BA2 = models.BankAccount{
 	UserID: 2,
-	BankID: 2,
+	BankID: 1,
 	Status: 1,
 	Sheba:  "IR750170000000106748249001",
-	Bank:   models.Bank{Name: "pasargad"},
+	Bank:   models.Bank{Name: "parsian"},
 }
 
 type BankAccountTestSuite struct {
@@ -76,7 +78,59 @@ func (suite *BankAccountTestSuite) TestGetSpecificBankAccount_UserIDAndBankAccou
 }
 
 func (suite *BankAccountTestSuite) TestGetSpecificBankAccount_UserIDAndBankAccountIDDoNotMatch() {
-	
+	userID := uint(1)
+	bankAccountID := uint(1)
+	ba1 := BA1
+	ba1.Bank.ID = 2
+	ba2 := BA2
+	ba2.Bank.ID = 1
+
+	sqlmock.NewRows([]string{"user_id", "bank_id", "status", "sheba"}).
+		AddRow(ba1.UserID, ba1.BankID, ba1.Status,
+			ba1.Sheba).AddRow(ba2.UserID, ba2.BankID, ba2.Status,
+		ba2.Sheba)
+
+	suite.mock.ExpectQuery(`SELECT (.+) FROM "bank_accounts"`).
+		WithArgs(bankAccountID, userID).
+		WillReturnError(gorm.ErrRecordNotFound)
+
+	bankRows := sqlmock.NewRows([]string{"id", "name"}).
+		AddRow(2, ba1.Bank.Name).AddRow(1, ba2.Bank.Name)
+
+	suite.mock.ExpectQuery(`SELECT (.+) FROM "banks" WHERE "banks"."id" = \$1`).
+		WithArgs(ba1.Bank.ID).
+		WillReturnRows(bankRows)
+
+	bankAccount, err := GetSpecificBankAccount(suite.DB, userID, bankAccountID)
+
+	require := suite.Require()
+	require.Error(err, "expect an  error")
+	require.Equal(models.BankAccount{}, bankAccount, "Bank account should be empty")
+	require.Equal("bank Account Not found", err.Error(), "Error message should match")
+}
+func (suite *BankAccountTestSuite) TestCreateBankAccount() {
+	userID := uint(1)
+	sheba := "IR123456789012345678901234"
+
+	// Patch SetUserAndBankForBankAccount
+	monkey.Patch(SetUserAndBankForBankAccount, func(db *gorm.DB, userID uint,
+		bankAccount *models.BankAccount) error {
+		return nil
+	})
+	defer monkey.Unpatch(SetUserAndBankForBankAccount)
+	suite.mock.ExpectBegin()
+	suite.mock.ExpectQuery(
+		regexp.QuoteMeta(`INSERT INTO "bank_accounts"`)).
+		WillReturnRows(sqlmock.NewRows([]string{"id"}))
+	suite.mock.ExpectCommit()
+
+	createdBankAccount, err := CreateBankAccount(suite.DB, userID, sheba)
+	createdBankAccount.ID = 1
+	require := suite.Require()
+	require.NoError(err, "Unexpected error")
+	require.NotNil(createdBankAccount, "Expected a non-nil bank account")
+	require.NotZero(createdBankAccount.ID, "Expected a non-zero bank account ID")
+	require.NoError(suite.mock.ExpectationsWereMet())
 }
 
 func TestBankAccountSuite(t *testing.T) {
