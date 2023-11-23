@@ -2,6 +2,7 @@ package routes
 
 import (
 	"Qpay/config"
+	"Qpay/server/handlers"
 	"Qpay/server/middlewares"
 
 	"github.com/labstack/echo/v4"
@@ -11,13 +12,14 @@ import (
 // InitRoutesV1 version 1 api routes:
 func InitRoutesV1(db *gorm.DB, cfg *config.Config) *echo.Echo {
 
+	authMiddleware := &middlewares.Auth{
+		JWT: &cfg.JWT,
+	}
+
 	e := echo.New()
-	e.Use(middlewares.AuthMiddleware)
 
 	v1 := e.Group("/api/v1")
-	v1.GET("/test", func(ctx echo.Context) error {
-		return nil
-	})
+	v1.GET("/test", handlers.TestHandler, authMiddleware.AuthMiddleware)
 
 	UserGroup(v1)
 	AuthGroup(v1, db, cfg)

@@ -6,7 +6,6 @@ import (
 
 type User struct {
 	gorm.Model
-	ID           int    `gorm:"type:int"` //TODO: I add this userId becuase need for tokens
 	Name         string `gorm:"type:varchar(50)"`
 	Username     string `gorm:"type:varchar(50);unique"`
 	Email        string `gorm:"type:varchar(50);unique"`

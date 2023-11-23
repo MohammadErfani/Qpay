@@ -4,6 +4,7 @@ import (
 	"Qpay/config"
 	"Qpay/models"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -12,22 +13,28 @@ import (
 )
 
 type Credential struct {
-	UserID         int       `json:"id"`
+	ID             int       `json:"id"`
 	ExpirationTime time.Time `json:"expired_at"`
-	jwt.RegisteredClaims
 }
 
-func newCredential(user *models.User, duration time.Duration) *Credential {
+func newCredential(userID int, duration time.Duration) *Credential {
+	fmt.Printf("TIME IN CONFIG: %v\n", duration*600000000)
 	cred := &Credential{
-		UserID:         user.ID,
-		ExpirationTime: time.Now().Add(duration),
+		ID:             userID,
+		ExpirationTime: time.Now().Add(duration * 600000000),
 	}
-
 	return cred
 }
 
-func CreateToken(config *config.JWT, user *models.User) (string, error) {
-	cred := newCredential(user, config.ExpirationTime)
+func (credential *Credential) Valid() error {
+	if time.Now().After(credential.ExpirationTime) {
+		return errors.New("token expired")
+	}
+	return nil
+}
+
+func CreateToken(config *config.JWT, userID int) (string, error) {
+	cred := newCredential(userID, config.ExpirationTime)
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, cred)
 
@@ -58,8 +65,6 @@ func GetUser(db *gorm.DB, email, phoneNumber, password string) (*models.User, er
 	return nil, errors.New("Password not correct")
 }
 
-var secretKey = []byte("mysecretKey")
-
 var ErrInvalidToken = errors.New("invalid token")
 
 func VerifyToken(cfg *config.JWT, token string) (*Credential, error) {
@@ -73,8 +78,10 @@ func VerifyToken(cfg *config.JWT, token string) (*Credential, error) {
 
 	jwtToken, err := jwt.ParseWithClaims(token, &Credential{}, keyFunc)
 
+	fmt.Printf("CRED :: %v %v\n", jwtToken, err)
+
 	if err != nil {
-		return nil, ErrInvalidToken
+		return nil, err
 	}
 
 	cred, ok := jwtToken.Claims.(*Credential)

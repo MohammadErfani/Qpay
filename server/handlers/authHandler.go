@@ -71,7 +71,7 @@ func (auth *Auth) Login(ctx echo.Context) error {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"message": "Bad request"})
 	}
 
-	token, err := utils.CreateToken(auth.JWT, user)
+	token, err := utils.CreateToken(auth.JWT, int(user.ID))
 
 	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"message": "Bad request"})
@@ -81,4 +81,8 @@ func (auth *Auth) Login(ctx echo.Context) error {
 	jsonToken.Token = token
 
 	return ctx.JSON(http.StatusOK, jsonToken)
+}
+
+func TestHandler(ctx echo.Context) error {
+	return ctx.JSON(http.StatusOK, map[string]string{"hasError": "false", "message": "Your test is done!"})
 }

@@ -3,6 +3,7 @@ package middlewares
 import (
 	"Qpay/config"
 	"Qpay/utils"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -41,7 +42,9 @@ func (a *Auth) AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		credential, err := utils.VerifyToken(a.JWT, token)
 
 		if err != nil {
-			return ctx.NoContent(http.StatusUnauthorized)
+
+			fmt.Printf("ERROR IN VERIFY:: %v\n", err)
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"hasError": "true", "message": "token not valid"})
 		}
 
 		ctx.Set(UserIdContextField, credential.ID)
