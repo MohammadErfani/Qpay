@@ -78,8 +78,6 @@ func VerifyToken(cfg *config.JWT, token string) (*Credential, error) {
 
 	jwtToken, err := jwt.ParseWithClaims(token, &Credential{}, keyFunc)
 
-	fmt.Printf("CRED :: %v %v\n", jwtToken, err)
-
 	if err != nil {
 		return nil, err
 	}

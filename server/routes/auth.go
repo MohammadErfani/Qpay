@@ -8,12 +8,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type User struct {
-	email       string `json:"email"`
-	phoneNumber string `json:"phoneNumber"`
-	password    string `json:"password"`
-}
-
 type Auth struct {
 	DB  *gorm.DB
 	JWT *config.JWT
