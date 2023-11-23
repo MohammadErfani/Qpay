@@ -1,24 +1,50 @@
 package middlewares
 
 import (
-  "net/http"
+	"Qpay/config"
 	"Qpay/utils"
+	"net/http"
+	"strings"
 
 	echo "github.com/labstack/echo/v4"
 )
 
-// type Auth struct {
-// 	DB  *gorm.DB
-// 	JWT *config.JWT
-// }
+const (
+	AuthHeader         = "Authorization"
+	Bearer             = "bearer"
+	UserIdContextField = "user_id"
+)
 
-func AuthMiddleware(c echo.HandlerFunc) echo.HandlerFunc{
-  return func(c echo.Context) error {
-    token := c.Request().Header.Get("Authorization")
-    checkToken := utils.ValidationToken(token)
-    if checkToken != nil {
-			return c.JSON(http.StatusBadRequest, map[string]string{"hasError": "true", "message": "Your token not valid or expired!"})
-    }
-return nil
-  }
+type Auth struct {
+	JWT *config.JWT
+}
+
+func (a *Auth) AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		tokenHeaeder := ctx.Request().Header.Get("Authorization")
+		if tokenHeaeder == "" {
+			return ctx.NoContent(http.StatusUnauthorized)
+		}
+
+		tokenParam := strings.Split(tokenHeaeder, " ")
+		if len(tokenParam) < 2 {
+			return ctx.NoContent(http.StatusUnauthorized)
+		}
+
+		tokenType := strings.ToLower(tokenParam[0])
+		if tokenType != Bearer {
+			return ctx.NoContent(http.StatusUnauthorized)
+		}
+
+		token := tokenParam[1]
+
+		credential, err := utils.VerifyToken(a.JWT, token)
+
+		if err != nil {
+			return ctx.NoContent(http.StatusUnauthorized)
+		}
+
+		ctx.Set(UserIdContextField, credential.ID)
+		return next(ctx)
+	}
 }

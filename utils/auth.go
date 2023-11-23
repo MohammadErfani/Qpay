@@ -7,24 +7,19 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
+
 	"gorm.io/gorm"
 )
 
 type Credential struct {
-	Name           string    `json:"name"`
-	Email          string    `json:"email"`
-	PhoneNumber    string    `json:"PhoneNumber"`
-	Identity       string    `json:"Identity"`
+	UserID         int       `json:"id"`
 	ExpirationTime time.Time `json:"expired_at"`
 	jwt.RegisteredClaims
 }
 
 func newCredential(user *models.User, duration time.Duration) *Credential {
 	cred := &Credential{
-		Name:           user.Name,
-		Email:          user.Email,
-		PhoneNumber:    user.PhoneNumber,
-		Identity:       user.Identity,
+		UserID:         user.ID,
 		ExpirationTime: time.Now().Add(duration),
 	}
 
@@ -63,6 +58,30 @@ func GetUser(db *gorm.DB, email, phoneNumber, password string) (*models.User, er
 	return nil, errors.New("Password not correct")
 }
 
-func ValidationToken (token string) error {
-  return nil
+var secretKey = []byte("mysecretKey")
+
+var ErrInvalidToken = errors.New("invalid token")
+
+func VerifyToken(cfg *config.JWT, token string) (*Credential, error) {
+	keyFunc := func(token *jwt.Token) (interface{}, error) {
+		_, ok := token.Method.(*jwt.SigningMethodHMAC)
+		if !ok {
+			return nil, errors.New(" ")
+		}
+		return []byte(cfg.SecretKey), nil
+	}
+
+	jwtToken, err := jwt.ParseWithClaims(token, &Credential{}, keyFunc)
+
+	if err != nil {
+		return nil, ErrInvalidToken
+	}
+
+	cred, ok := jwtToken.Claims.(*Credential)
+
+	if !ok {
+		return nil, ErrInvalidToken
+	}
+
+	return cred, nil
 }

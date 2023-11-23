@@ -2,6 +2,7 @@ package routes
 
 import (
 	"Qpay/config"
+	"Qpay/server/middlewares"
 
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
@@ -11,6 +12,7 @@ import (
 func InitRoutesV1(db *gorm.DB, cfg *config.Config) *echo.Echo {
 
 	e := echo.New()
+	e.Use(middlewares.AuthMiddleware)
 
 	v1 := e.Group("/api/v1")
 	v1.GET("/test", func(ctx echo.Context) error {
