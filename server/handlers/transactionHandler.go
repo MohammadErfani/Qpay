@@ -8,14 +8,6 @@ import (
 	"net/http"
 )
 
-type TransactionResponse struct {
-	TrackingCode  string  `json:"tracking_code"`
-	Status        string  `json:"status"`
-	PurchaserCard string  `json:"purchaser_card"`
-	PaymentAmount float64 `json:"payment_amount"`
-	PhoneNumber   string  `json:"phone_number"`
-	PaymentDate   string  `json:"payment_date"`
-}
 type TransactionHandler struct {
 	DB     *gorm.DB
 	UserID uint
@@ -97,25 +89,25 @@ func (tr *TransactionHandler) BeginTransaction(ctx echo.Context) error {
 
 }
 
+type TransactionResponse struct {
+	TrackingCode  string  `json:"tracking_code"`
+	Status        string  `json:"status"`
+	PurchaserCard string  `json:"purchaser_card"`
+	PaymentAmount float64 `json:"payment_amount"`
+	PhoneNumber   string  `json:"phone_number"`
+	PaymentDate   string  `json:"payment_date"`
+}
+
 func (tr *TransactionHandler) VerifyTransaction(ctx echo.Context) error {
-	// دریافت مقادیر زیر جهت تایید وضعیت تراکنش
-	//	شماره تراکنش
-
-	//	ریسپانس مقادیر بازگشتی
-	//	وضعیت تراکنش
-	//	۴ رقم آخر شماره کارت - یا برای سایده تر شدن کل شماره کارت
-	//	تاریخ و ساعت کم شدن پول
-	//	مبلغ پرداخت شده
-
 	var transaction models.Transaction
 	trackingCode := ctx.Param("tracking_code")
 	transaction, err := services.GetSpecificTransaction(tr.DB, trackingCode)
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, "Transaction does not exist!")
 	}
-	return ctx.JSON(http.StatusOK, SetTransactionResponse(transaction))
+	return ctx.JSON(http.StatusOK, SetVerifyTransactionResponse(transaction))
 }
-func SetTransactionResponse(transaction models.Transaction) TransactionResponse {
+func SetVerifyTransactionResponse(transaction models.Transaction) TransactionResponse {
 	var status string
 	if transaction.Status == models.NotPaid {
 		status = "NotPaid"
