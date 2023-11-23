@@ -4,7 +4,6 @@ import (
 	"Qpay/config"
 	"Qpay/models"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -18,7 +17,6 @@ type Credential struct {
 }
 
 func newCredential(userID int, duration time.Duration) *Credential {
-	fmt.Printf("TIME IN CONFIG: %v\n", duration*600000000)
 	cred := &Credential{
 		ID:             userID,
 		ExpirationTime: time.Now().Add(duration * 600000000),
@@ -50,7 +48,7 @@ func GetUser(db *gorm.DB, email, phoneNumber, password string) (*models.User, er
 			return nil, errors.New("User not found!")
 		}
 	} else if phoneNumber != "" && email == "" {
-		result := db.First(&dbUser, "phone_number= ?", email)
+		result := db.First(&dbUser, "phone_number= ?", phoneNumber)
 		if result.RowsAffected == 0 {
 			return nil, errors.New("User not found!")
 		}
