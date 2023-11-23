@@ -1,13 +1,19 @@
 package handlers
 
 import (
+	"Qpay/models"
+	"Qpay/services"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
+	"net/http"
 )
 
-type TransactionRequest struct {
-	GatewayID     uint    `json:"gateway_id"`
+type TransactionResponse struct {
+	TrackingCode  string  `json:"tracking_code"`
+	Status        string  `json:"status"`
+	PurchaserCard string  `json:"purchaser_card"`
 	PaymentAmount float64 `json:"payment_amount"`
+	PhoneNumber   string  `json:"phone_number"`
 }
 type TransactionHandler struct {
 	DB     *gorm.DB
@@ -99,5 +105,44 @@ func (tr *TransactionHandler) VerifyTransaction(ctx echo.Context) error {
 	//	۴ رقم آخر شماره کارت - یا برای سایده تر شدن کل شماره کارت
 	//	تاریخ و ساعت کم شدن پول
 	//	مبلغ پرداخت شده
-	return nil
+
+	var transaction models.Transaction
+	trackingCode := ctx.Param("tracking_code")
+	transaction, err := services.GetSpecificTransaction(tr.DB, trackingCode)
+	if err != nil {
+		return ctx.JSON(http.StatusNotFound, "Transaction does not exist!")
+	}
+	return ctx.JSON(http.StatusOK, SetTransactionResponse(transaction))
+}
+func SetTransactionResponse(transaction models.Transaction) TransactionResponse {
+	var status string
+	if transaction.Status == models.NotPaid {
+		status = "NotPaid"
+	} else if transaction.Status == models.NotSuccessfully {
+		status = "NotSuccessfully"
+	} else if transaction.Status == models.IssueOccurred {
+		status = "IssueOccurred"
+	} else if transaction.Status == models.Blocked {
+		status = "Blocked"
+	} else if transaction.Status == models.Refund {
+		status = "Refund"
+	} else if transaction.Status == models.Cancelled {
+		status = "Cancelled"
+	} else if transaction.Status == models.ReturnToGateway {
+		status = "ReturnToGateway"
+	} else if transaction.Status == models.AwaitingConfirmation {
+		status = "AwaitingConfirmation"
+	} else if transaction.Status == models.Confirmed {
+		status = "Confirmed"
+	} else if transaction.Status == models.Paid {
+		status = "Paid"
+	}
+
+	return TransactionResponse{
+		TrackingCode:  transaction.TrackingCode,
+		Status:        status,
+		PurchaserCard: transaction.PurchaserCard,
+		PaymentAmount: transaction.PaymentAmount,
+		PhoneNumber:   transaction.PhoneNumber,
+	}
 }

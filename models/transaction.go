@@ -30,5 +30,5 @@ const (
 	ReturnToGateway
 	AwaitingConfirmation
 	Confirmed
-	newConst
+	Paid
 )
