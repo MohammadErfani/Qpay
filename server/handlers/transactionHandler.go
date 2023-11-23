@@ -14,6 +14,7 @@ type TransactionResponse struct {
 	PurchaserCard string  `json:"purchaser_card"`
 	PaymentAmount float64 `json:"payment_amount"`
 	PhoneNumber   string  `json:"phone_number"`
+	PaymentDate   string  `json:"payment_date"`
 }
 type TransactionHandler struct {
 	DB     *gorm.DB
@@ -144,5 +145,6 @@ func SetTransactionResponse(transaction models.Transaction) TransactionResponse 
 		PurchaserCard: transaction.PurchaserCard,
 		PaymentAmount: transaction.PaymentAmount,
 		PhoneNumber:   transaction.PhoneNumber,
+		PaymentDate:   transaction.CreatedAt.Format("2006-01-02 15:04"),
 	}
 }
