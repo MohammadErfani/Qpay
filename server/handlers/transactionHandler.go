@@ -116,7 +116,9 @@ func (tr *TransactionHandler) BeginTransaction(ctx echo.Context) error {
 	}
 
 	// اینجا باید به ماک متصل بشم و یه خروجی ازش بگیرم که مثلا از کارت مشتری پول کم شده
-
+	if _, err := services.CreateTransaction(tr.DB, req.TrackingCode, req.PaymentAmount, req.CardYear, req.CardMonth, req.PhoneNumber); err != nil {
+		return ctx.JSON(http.StatusBadRequest, err.Error())
+	}
 	return nil
 
 }
