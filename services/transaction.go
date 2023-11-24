@@ -24,16 +24,6 @@ func CancelledTransaction(db *gorm.DB, TrackingCode string) error {
 	db.Save(&trans)
 	return nil
 }
-
-//func CheckTransaction(db *gorm.DB, bankAccountID uint) (*models.User, error) {
-//	user, err := GetUser(db, "id", fmt.Sprintf("%v", userID))
-//	if err != nil {
-//		return nil, errors.New(fmt.Sprintf("user is incorrect: %v", err.Error()))
-//	}
-//	for _, ba := range user.BankAccounts {
-//		if bankAccountID == ba.ID {
-//			return user, nil
-//		}
-//	}
-//	return nil, errors.New("bank account is incorrect")
-//}
+func CreateTransaction(db *gorm.DB) (*models.Transaction, error) {
+	return nil, nil
+}

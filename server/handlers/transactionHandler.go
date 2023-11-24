@@ -95,7 +95,7 @@ func (tr *TransactionHandler) BeginTransaction(ctx echo.Context) error {
 	//	استاتوس تراکنش
 	//	مبلغ پرداخت شده
 	//	کپی و پیست آدرس بازگشتی
-	//	۴ رقم آخر شماره کارت - یا برای ساده تر شدن کل شماره کارت
+	//	۴ رقم آخر شماره کارت - یا برای ساده‌تر شدن کل شماره کارت
 	var req TransactionRequest
 	if err := ctx.Bind(&req); err != nil {
 		return ctx.JSON(http.StatusBadRequest, "Bind Error")
@@ -103,8 +103,7 @@ func (tr *TransactionHandler) BeginTransaction(ctx echo.Context) error {
 	// اینجا چک میکنه اگه طرف فیلد پیمنت کانفیرم رو فالس داده بود
 	//یعنی میخواد پرداخت رو کنسل کنه و پرداخت انجام نده
 	if !req.PaymentConfirmation {
-		err := services.CancelledTransaction(tr.DB, req.TrackingCode)
-		if err != nil {
+		if err := services.CancelledTransaction(tr.DB, req.TrackingCode); err != nil {
 			return ctx.JSON(http.StatusBadRequest, err.Error())
 		}
 		return ctx.JSON(http.StatusNotAcceptable, "your Payment Transaction is Canceled")
@@ -115,6 +114,9 @@ func (tr *TransactionHandler) BeginTransaction(ctx echo.Context) error {
 	if err := ValidateTransaction(&req); err != nil {
 		return ctx.JSON(http.StatusBadRequest, err.Error())
 	}
+
+	// اینجا باید به ماک متصل بشم و یه خروجی ازش بگیرم که مثلا از کارت مشتری پول کم شده
+
 	return nil
 
 }
