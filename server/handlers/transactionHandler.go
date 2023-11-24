@@ -3,9 +3,11 @@ package handlers
 import (
 	"Qpay/models"
 	"Qpay/services"
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 	"net/http"
+	"strconv"
 )
 
 type TransactionResponse struct {
@@ -15,9 +17,20 @@ type TransactionResponse struct {
 	PaymentAmount float64 `json:"payment_amount"`
 	PhoneNumber   string  `json:"phone_number"`
 }
+type CreateTransactionRequest struct {
+	PhoneNumber   string  `json:"phone_number"`
+	PaymentAmount float64 `json:"payment_amount"`
+}
+type CreateTransactionResponse struct {
+	TransactionID uint `json:"id"`
+}
 type TransactionHandler struct {
 	DB     *gorm.DB
 	UserID uint
+}
+type TransactionStartResponse struct {
+	PaymentAmount float64 `json:"payment_amount"`
+	OwnerName     string  `json:"owner_name"`
 }
 
 func (tr *TransactionHandler) ListAllTransaction(ctx echo.Context) error {
@@ -38,15 +51,23 @@ func (tr *TransactionHandler) SearchTransaction(ctx echo.Context) error {
 }
 
 func (tr *TransactionHandler) CreateTransaction(ctx echo.Context) error {
-	// دریافت پست مقادیر زیر
-	// گرفتن درگاه بر اساس route
-	//	مقدار پرداخت
-	// ست کردن مبلغ commission
-	//	شماره موبایل
 
-	//	ریسپانس مقادیر زیر
-	//	آی دی تراکنش
-	return nil
+	route := ctx.Param("route")
+	var req CreateTransactionRequest
+	if err := ctx.Bind(&req); err != nil {
+		return ctx.JSON(http.StatusBadRequest, "Bind Error")
+	}
+	gateway, err := services.GetGateway(tr.DB, "route", route)
+	if err != nil {
+		return ctx.JSON(http.StatusNotFound, "No get way with such route")
+	}
+
+	commission := req.PaymentAmount*gateway.Commission.PercentagePerTrans + gateway.Commission.AmountPerTrans
+	model, err := services.CreateTransaction(tr.DB, gateway.ID, req.PaymentAmount, req.PhoneNumber, commission)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, err.Error())
+	}
+	return ctx.JSON(http.StatusOK, CreateTransactionResponse{TransactionID: model.ID})
 }
 
 //	func (tr *TransactionHandler) RequestPersonalTransaction(ctx echo.Context) error {
@@ -71,9 +92,13 @@ func (tr *TransactionHandler) CreateTransaction(ctx echo.Context) error {
 //		return nil
 //	}
 func (tr *TransactionHandler) GetTransactionForStart(ctx echo.Context) error {
-	// response:
-
-	return nil
+	transactionid, _ := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	transaction, err := services.GetTransactionByID(tr.DB, uint(transactionid))
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, err.Error())
+	}
+	gateway, err := services.GetGateway(tr.DB, "id", fmt.Sprintf("%v", transaction.GatewayID))
+	return ctx.JSON(http.StatusOK, TransactionStartResponse{PaymentAmount: transaction.PaymentAmount, OwnerName: gateway.BankAccount.AccountOwner})
 }
 func (tr *TransactionHandler) BeginTransaction(ctx echo.Context) error {
 	// دریافت پست مقادیر زیر

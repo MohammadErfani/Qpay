@@ -34,6 +34,10 @@ type GatewayHandler struct {
 	DB     *gorm.DB
 	UserID uint
 }
+type ChangeGatewayRequest struct {
+	BankAccountID uint `json:"bank_account_id"`
+	GatewayID     uint `json:"gateway_id"`
+}
 
 func (gh *GatewayHandler) ListAllGateways(ctx echo.Context) error {
 	gateways, err := services.GetUserGateways(gh.DB, gh.UserID)
@@ -145,4 +149,21 @@ func SetGatewayResponse(gateway models.Gateway) GatewayResponse {
 		Status:        status,
 		Type:          GatewayType,
 	}
+}
+func (gh *GatewayHandler) ChangeGetawayBankAccount(ctx echo.Context) error {
+	var req ChangeGatewayRequest
+	if err := ctx.Bind(&req); err != nil {
+		return ctx.JSON(http.StatusBadRequest, "Bind Error")
+	}
+	gateway, err := services.GetSpecificGateway(gh.DB, gh.UserID, req.GatewayID)
+	if err != nil {
+		return ctx.JSON(http.StatusForbidden, "gateway doesn't exist for this user")
+	}
+	_, err = services.GetSpecificBankAccount(gh.DB, gh.UserID, req.BankAccountID)
+	if err != nil {
+		return ctx.JSON(http.StatusForbidden, "bank account doesn't exist for this user")
+	}
+	gateway.BankAccountID = req.BankAccountID
+	return ctx.JSON(http.StatusForbidden, "Bank account updated successfully")
+
 }

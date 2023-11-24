@@ -13,6 +13,6 @@ func GatewayGroup(ctx *echo.Group) {
 	}
 	ctx.GET("/gateway", gh.ListAllGateways) // List all gateways
 	ctx.GET("/gateway/:id", gh.FindGateway) // find a gateways
-	//ctx.PUT("/gateway/:id", handlers.DeleteCard)      // update gateway for a user
-	ctx.POST("/gateway", gh.RegisterNewGateway) // register gateway for a user
+	ctx.POST("/gateway", gh.RegisterNewGateway)
+	ctx.POST("/gateway/update", gh.ChangeGetawayBankAccount)
 }
