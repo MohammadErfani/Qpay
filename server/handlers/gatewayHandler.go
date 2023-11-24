@@ -125,8 +125,8 @@ func SetGatewayResponse(gateway models.Gateway) GatewayResponse {
 		status = "active"
 	} else if gateway.Status == models.StatusGatewayInActive {
 		status = "inactive"
-	} else if gateway.Status == models.StatusGatewayUnapproved {
-		status = "UnApproved"
+	} else if gateway.Status == models.StatusGatewayBlocked {
+		status = "blocked"
 	} else if gateway.Status == models.StatusGatewayDraft {
 		status = "Draft"
 	}

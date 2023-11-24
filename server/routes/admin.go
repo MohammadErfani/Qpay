@@ -11,4 +11,18 @@ func AdminGroup(adminG *echo.Group) {
 		DB: database.DB(),
 	}
 	adminG.POST("/admin/register", aH.AdminCreate)
+	adminG.GET("/admin/commission", aH.AdminListAllCommission)
+	adminG.GET("/admin/commission/:id", aH.AdminGetCommission)
+	adminG.POST("/admin/commission", aH.AdminCreateCommission)
+	adminG.PATCH("/admin/commission/:id", aH.AdminUpdateCommission)
+	adminG.DELETE("/admin/commission/:id", aH.AdminDeleteCommission)
+	adminG.GET("/admin/user", aH.AdminListUsers)
+	adminG.GET("/admin/user/:id", aH.AdminGetUser)
+	adminG.PATCH("/admin/user/:id", aH.AdminUpdateUser)
+	adminG.GET("/admin/gateway", aH.AdminListAllGateways)
+	adminG.GET("/admin/gateway/:id", aH.AdminGetGateway)
+	adminG.PATCH("/admin/gateway/:id", aH.AdminUpdateGateway)
+	adminG.GET("/admin/transaction", aH.AdminListTransactions)
+	adminG.GET("/admin/transaction/:id", aH.AdminGetTransaction)
+	adminG.PATCH("/admin/transaction/:id", aH.AdminUpdateTransaction)
 }

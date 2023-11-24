@@ -23,7 +23,7 @@ type Gateway struct {
 const (
 	StatusGatewayActive = iota
 	StatusGatewayInActive
-	StatusGatewayUnapproved
+	StatusGatewayBlocked
 	StatusGatewayDraft
 )
 

@@ -90,7 +90,6 @@ func SetDefaultRoute(db *gorm.DB, user *models.User, gateway *models.Gateway) {
 	route := fmt.Sprintf("%s_%s", username, utils.GenerateRandomString(10))
 	// check if random string exist in database
 	for _, err := GetGateway(db, "route", route); err == nil; {
-		fmt.Println("inja girim")
 		route = fmt.Sprintf("%s_%s", username, utils.GenerateRandomString(10))
 	}
 	gateway.Route = route
