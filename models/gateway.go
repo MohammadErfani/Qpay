@@ -19,3 +19,22 @@ type Gateway struct {
 	Status        uint8
 	Type          uint8
 }
+
+const (
+	StatusGatewayActive = iota
+	StatusGatewayInActive
+	StatusGatewayUnapproved
+	StatusGatewayDraft
+)
+
+const (
+	PersonalTypeGateway = iota
+	BusinessTypeGateway
+)
+
+func SetGatewayType(isPersonal bool) uint8 {
+	if isPersonal {
+		return PersonalTypeGateway
+	}
+	return BusinessTypeGateway
+}
