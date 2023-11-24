@@ -3,6 +3,7 @@ package handlers
 import (
 	"Qpay/models"
 	"Qpay/services"
+	"Qpay/utils"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 	"net/http"
@@ -68,6 +69,17 @@ func (tr *TransactionHandler) GetTransactionForStart(ctx echo.Context) error {
 
 	return nil
 }
+
+type TransactionRequest struct {
+	PaymentAmount       float64 `json:"payment_amount"`
+	PurchaserCard       string  `json:"purchaser_card"`
+	CardMonth           int     `json:"card_month"`
+	CardYear            int     `json:"card_year"`
+	PhoneNumber         string  `json:"phone_number"`
+	TrackingCode        string  `json:"tracking_code"`
+	PaymentConfirmation bool    `json:"payment_confirmation"` //	دستور پرداخت و کم کردن موجودی (کنسل تراکنش - پرداخت)
+}
+
 func (tr *TransactionHandler) BeginTransaction(ctx echo.Context) error {
 	// دریافت پست مقادیر زیر
 	// شماره تراکنش
@@ -76,8 +88,7 @@ func (tr *TransactionHandler) BeginTransaction(ctx echo.Context) error {
 	//	رمز کارت بانکی
 	//	ماه انقضا کارت
 	//	سال انقضا کارت
-	//	استاتوس (کنسل تراکنش - تایید پرداخت)
-	//	آدرس بازگشتی  callbackUrl
+	//	دستور پرداخت و کم کردن موجودی (کنسل تراکنش - پرداخت)
 
 	//	ریسپانس مقادیر زیر
 	//	آی دی تراکنش
@@ -85,8 +96,53 @@ func (tr *TransactionHandler) BeginTransaction(ctx echo.Context) error {
 	//	مبلغ پرداخت شده
 	//	کپی و پیست آدرس بازگشتی
 	//	۴ رقم آخر شماره کارت - یا برای ساده تر شدن کل شماره کارت
+	var req TransactionRequest
+	if err := ctx.Bind(&req); err != nil {
+		return ctx.JSON(http.StatusBadRequest, "Bind Error")
+	}
+	// اینجا چک میکنه اگه طرف فیلد پیمنت کانفیرم رو فالس داده بود
+	//یعنی میخواد پرداخت رو کنسل کنه و پرداخت انجام نده
+	if !req.PaymentConfirmation {
+		err := services.CancelledTransaction(tr.DB, req.TrackingCode)
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, err.Error())
+		}
+		return ctx.JSON(http.StatusNotAcceptable, "your Payment Transaction is Canceled")
+	}
+
+	// حالا که همه چیز آماده انجام تراکنش هست باید اول بررسی شود که
+	// فلیدهای لازم درون درخواست وجود داند یا خیر؟
+	if err := ValidateTransaction(&req); err != nil {
+		return ctx.JSON(http.StatusBadRequest, err.Error())
+	}
 	return nil
 
+}
+func ValidateTransaction(gateway *TransactionRequest) error {
+
+	requiredFields := map[string]string{
+		"purchaser_card": gateway.PurchaserCard,
+		"tracking_code":  gateway.TrackingCode,
+		"phone_number":   gateway.PhoneNumber,
+	}
+	requiredFieldsInt := map[string]int{
+		"card_month": gateway.CardMonth,
+		"card_year":  gateway.CardYear,
+	}
+	requiredFieldsFloat64 := map[string]float64{
+		"payment_amount": gateway.PaymentAmount,
+	}
+	if err := utils.IsRequired(requiredFields); err != nil {
+		return err
+	}
+	if err := utils.IsRequiredInt(requiredFieldsInt); err != nil {
+		return err
+	}
+
+	if err := utils.IsRequiredFloat64(requiredFieldsFloat64); err != nil {
+		return err
+	}
+	return nil
 }
 
 type TransactionResponse struct {
