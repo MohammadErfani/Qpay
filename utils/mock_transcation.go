@@ -21,7 +21,21 @@ func Transaction(PaymentAmount float64, CardYear int, CardMonth int, PhoneNumber
 	}
 	return nil
 }
-
+func PurchaserBankAccount(PurchaserCard string) string {
+	switch PurchaserCard {
+	case "6037991123787766":
+		return "mohammad erfani"
+	case "5042061042417820":
+		return "amin zohrabi"
+	case "5042061042417830":
+		return "kiana hoseini"
+	default:
+		return ""
+	}
+}
+func ComisionCalc(PaymentAmount, comision float64) float64 {
+	return PaymentAmount / comision
+}
 func cardExpireCheck(CardYear int, CardMonth int) error {
 	if CardYear < 1402 {
 		return errors.New("card is expire")

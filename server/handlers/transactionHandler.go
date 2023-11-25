@@ -119,6 +119,7 @@ func (tr *TransactionHandler) BeginTransaction(ctx echo.Context) error {
 	if _, err := services.CreateTransaction(tr.DB, req.TrackingCode, req.PaymentAmount, req.CardYear, req.CardMonth, req.PhoneNumber, req.PurchaserCard); err != nil {
 		return ctx.JSON(http.StatusBadRequest, err.Error())
 	}
+
 	return nil
 
 }

@@ -33,7 +33,7 @@ func CreateTransaction(db *gorm.DB, TrackingCode string, PaymentAmount float64, 
 	if err != nil {
 		return &models.Transaction{}, errors.New("transaction Not found")
 	}
-	if err = db.Preload("Commission").First(&gateway, fmt.Sprintf("%s=?", "ID"), transaction.GatewayID).Error; err != nil {
+	if err = db.Preload("Commission").Preload("BankAccount").First(&gateway, fmt.Sprintf("%s=?", "ID"), transaction.GatewayID).Error; err != nil {
 		return nil, errors.New("gateway not found")
 	}
 
@@ -41,5 +41,23 @@ func CreateTransaction(db *gorm.DB, TrackingCode string, PaymentAmount float64, 
 	if err := utils.Transaction(PaymentAmount, CardYear, CardMonth, PhoneNumber, PurchaserCard); err != nil {
 		return nil, err
 	}
+
+	// باید تراکنش را برای گتوی کاربر ثبت کنیم
+	transaction = models.Transaction{
+		GatewayID:            transaction.GatewayID,
+		PaymentAmount:        PaymentAmount,
+		CommissionAmount:     utils.ComisionCalc(PaymentAmount, transaction.Gateway.Commission.AmountPerTrans),
+		PurchaserCard:        PurchaserCard,
+		CardMonth:            CardMonth,
+		CardYear:             CardYear,
+		PhoneNumber:          PhoneNumber,
+		TrackingCode:         TrackingCode,
+		Status:               models.Paid,
+		OwnerBankAccount:     gateway.BankAccount.AccountOwner,
+		PurchaserBankAccount: utils.PurchaserBankAccount(PurchaserCard),
+	}
+	db.Save(&transaction)
+
+	// حالا بای خروجی را مشخص کنیم
 	return nil, nil
 }
