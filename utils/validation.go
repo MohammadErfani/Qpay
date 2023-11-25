@@ -50,3 +50,19 @@ func IsRequiredID(requiredFields map[string]uint) error {
 	}
 	return nil
 }
+func IsRequiredInt(requiredFields map[string]int) error {
+	for fieldName, value := range requiredFields {
+		if value == 0 {
+			return errors.New(fmt.Sprintf("%v is required", fieldName))
+		}
+	}
+	return nil
+}
+func IsRequiredFloat64(requiredFields map[string]float64) error {
+	for fieldName, value := range requiredFields {
+		if value == 0.00 {
+			return errors.New(fmt.Sprintf("%v is required", fieldName))
+		}
+	}
+	return nil
+}

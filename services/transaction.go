@@ -15,6 +15,7 @@ func GetSpecificTransaction(db *gorm.DB, trackingCode string) (models.Transactio
 	}
 	return transaction, nil
 }
+
 func CreateTransaction(db *gorm.DB, gatewayid uint, amount float64, phonenumber string, commission float64) (models.Transaction, error) {
 	gateway, err := GetGateway(db, "id", fmt.Sprintf("%v", gatewayid))
 	if err != nil {
@@ -42,4 +43,14 @@ func GetTransactionByID(db *gorm.DB, id uint) (*models.Transaction, error) {
 		return nil, errors.New("transaction not found")
 	}
 	return &transaction, nil
+}
+func CancelledTransaction(db *gorm.DB, TrackingCode string) error {
+	var trans models.Transaction
+	err := db.Where("tracking_code=?", TrackingCode).First(&trans).Error
+	if err != nil {
+		return errors.New("transaction Not found")
+	}
+	trans.Status = models.Cancelled
+	db.Save(&trans)
+	return nil
 }

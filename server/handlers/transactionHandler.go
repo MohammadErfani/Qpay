@@ -3,6 +3,7 @@ package handlers
 import (
 	"Qpay/models"
 	"Qpay/services"
+	"Qpay/utils"
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
@@ -24,6 +25,7 @@ type CreateTransactionRequest struct {
 type CreateTransactionResponse struct {
 	TransactionID uint `json:"id"`
 }
+
 type TransactionHandler struct {
 	DB     *gorm.DB
 	UserID uint
@@ -100,6 +102,17 @@ func (tr *TransactionHandler) GetTransactionForStart(ctx echo.Context) error {
 	gateway, err := services.GetGateway(tr.DB, "id", fmt.Sprintf("%v", transaction.GatewayID))
 	return ctx.JSON(http.StatusOK, TransactionStartResponse{PaymentAmount: transaction.PaymentAmount, OwnerName: gateway.BankAccount.AccountOwner})
 }
+
+type TransactionRequest struct {
+	PaymentAmount       float64 `json:"payment_amount"`
+	PurchaserCard       string  `json:"purchaser_card"`
+	CardMonth           int     `json:"card_month"`
+	CardYear            int     `json:"card_year"`
+	PhoneNumber         string  `json:"phone_number"`
+	TrackingCode        string  `json:"tracking_code"`
+	PaymentConfirmation bool    `json:"payment_confirmation"` //	دستور پرداخت و کم کردن موجودی (کنسل تراکنش - پرداخت)
+}
+
 func (tr *TransactionHandler) BeginTransaction(ctx echo.Context) error {
 	// دریافت پست مقادیر زیر
 	// شماره تراکنش
@@ -108,38 +121,84 @@ func (tr *TransactionHandler) BeginTransaction(ctx echo.Context) error {
 	//	رمز کارت بانکی
 	//	ماه انقضا کارت
 	//	سال انقضا کارت
-	//	استاتوس (کنسل تراکنش - تایید پرداخت)
-	//	آدرس بازگشتی  callbackUrl
+	//	دستور پرداخت و کم کردن موجودی (کنسل تراکنش - پرداخت)
 
 	//	ریسپانس مقادیر زیر
 	//	آی دی تراکنش
 	//	استاتوس تراکنش
 	//	مبلغ پرداخت شده
 	//	کپی و پیست آدرس بازگشتی
-	//	۴ رقم آخر شماره کارت - یا برای ساده تر شدن کل شماره کارت
+	//	۴ رقم آخر شماره کارت - یا برای ساده‌تر شدن کل شماره کارت
+	var req TransactionRequest
+	if err := ctx.Bind(&req); err != nil {
+		return ctx.JSON(http.StatusBadRequest, "Bind Error")
+	}
+	// اینجا چک میکنه اگه طرف فیلد پیمنت کانفیرم رو فالس داده بود
+	//یعنی میخواد پرداخت رو کنسل کنه و پرداخت انجام نده
+	if !req.PaymentConfirmation {
+		if err := services.CancelledTransaction(tr.DB, req.TrackingCode); err != nil {
+			return ctx.JSON(http.StatusBadRequest, err.Error())
+		}
+		return ctx.JSON(http.StatusNotAcceptable, "your Payment Transaction is Canceled")
+	}
+
+	// حالا که همه چیز آماده انجام تراکنش هست باید اول بررسی شود که
+	// فلیدهای لازم درون درخواست وجود داند یا خیر؟
+	if err := ValidateTransaction(&req); err != nil {
+		return ctx.JSON(http.StatusBadRequest, err.Error())
+	}
+
+	// اینجا باید به ماک متصل بشم و یه خروجی ازش بگیرم که مثلا از کارت مشتری پول کم شده
+
 	return nil
 
 }
+func ValidateTransaction(gateway *TransactionRequest) error {
+
+	requiredFields := map[string]string{
+		"purchaser_card": gateway.PurchaserCard,
+		"tracking_code":  gateway.TrackingCode,
+		"phone_number":   gateway.PhoneNumber,
+	}
+	requiredFieldsInt := map[string]int{
+		"card_month": gateway.CardMonth,
+		"card_year":  gateway.CardYear,
+	}
+	requiredFieldsFloat64 := map[string]float64{
+		"payment_amount": gateway.PaymentAmount,
+	}
+	if err := utils.IsRequired(requiredFields); err != nil {
+		return err
+	}
+	if err := utils.IsRequiredInt(requiredFieldsInt); err != nil {
+		return err
+	}
+
+	if err := utils.IsRequiredFloat64(requiredFieldsFloat64); err != nil {
+		return err
+	}
+	return nil
+}
+
+type TransactionResponse struct {
+	TrackingCode  string  `json:"tracking_code"`
+	Status        string  `json:"status"`
+	PurchaserCard string  `json:"purchaser_card"`
+	PaymentAmount float64 `json:"payment_amount"`
+	PhoneNumber   string  `json:"phone_number"`
+	PaymentDate   string  `json:"payment_date"`
+}
 
 func (tr *TransactionHandler) VerifyTransaction(ctx echo.Context) error {
-	// دریافت مقادیر زیر جهت تایید وضعیت تراکنش
-	//	شماره تراکنش
-
-	//	ریسپانس مقادیر بازگشتی
-	//	وضعیت تراکنش
-	//	۴ رقم آخر شماره کارت - یا برای سایده تر شدن کل شماره کارت
-	//	تاریخ و ساعت کم شدن پول
-	//	مبلغ پرداخت شده
-
 	var transaction models.Transaction
 	trackingCode := ctx.Param("tracking_code")
 	transaction, err := services.GetSpecificTransaction(tr.DB, trackingCode)
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, "Transaction does not exist!")
 	}
-	return ctx.JSON(http.StatusOK, SetTransactionResponse(transaction))
+	return ctx.JSON(http.StatusOK, SetVerifyTransactionResponse(transaction))
 }
-func SetTransactionResponse(transaction models.Transaction) TransactionResponse {
+func SetVerifyTransactionResponse(transaction models.Transaction) TransactionResponse {
 	var status string
 	if transaction.Status == models.NotPaid {
 		status = "NotPaid"
@@ -169,5 +228,6 @@ func SetTransactionResponse(transaction models.Transaction) TransactionResponse 
 		PurchaserCard: transaction.PurchaserCard,
 		PaymentAmount: transaction.PaymentAmount,
 		PhoneNumber:   transaction.PhoneNumber,
+		PaymentDate:   transaction.CreatedAt.Format("2006-01-02 15:04"),
 	}
 }
