@@ -35,6 +35,13 @@ type GatewayHandler struct {
 	UserID uint
 }
 
+type UpdateGatewayRequest struct {
+	CommissionID  uint   `json:"commission_id"`
+	BankAccountID uint   `json:"bank_account_id"`
+	Name          string `json:"name"`
+	Logo          string `json:"logo"`
+}
+
 func (gh *GatewayHandler) ListAllGateways(ctx echo.Context) error {
 	gateways, err := services.GetUserGateways(gh.DB, gh.UserID)
 	if err != nil {
@@ -86,7 +93,27 @@ func (gh *GatewayHandler) RegisterNewGateway(ctx echo.Context) error {
 		}
 		return ctx.JSON(http.StatusInternalServerError, "Internal server error in gateway")
 	}
-	return ctx.JSON(http.StatusOK, "You're gateway is successfully registered!")
+	return ctx.JSON(http.StatusCreated, "You're gateway is successfully registered!")
+}
+
+func (gh *GatewayHandler) UpdateGateway(ctx echo.Context) error {
+	var req UpdateGatewayRequest
+	gatewayID, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		return ctx.JSON(http.StatusBadRequest, "gateway is not correct")
+	}
+	if err = ctx.Bind(&req); err != nil {
+		return ctx.JSON(http.StatusBadRequest, "Bind Error")
+	}
+	_, err = services.UpdateGateway(gh.DB, gh.UserID, uint(gatewayID), req.Name, req.Logo, req.BankAccountID, req.CommissionID)
+	if err != nil {
+		return ctx.JSON(http.StatusBadRequest, err.Error())
+	}
+	return ctx.JSON(http.StatusOK, "You're gateway is successfully updated")
+}
+
+func (gh *GatewayHandler) DeleteGateway(ctx echo.Context) error {
+	return nil
 }
 
 //	func ValidateUniqueGateway(db *gorm.DB, gateway *GatewayRequest) error {

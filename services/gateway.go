@@ -51,7 +51,7 @@ func CheckUserAndBankAccountForGateway(db *gorm.DB, userID, bankAccountID uint) 
 		return nil, errors.New(fmt.Sprintf("user is incorrect: %v", err.Error()))
 	}
 	for _, ba := range user.BankAccounts {
-		if bankAccountID == ba.ID {
+		if bankAccountID == ba.ID && ba.Status == models.StatusBankAccountActive {
 			return user, nil
 		}
 	}
@@ -137,6 +137,44 @@ func CreateGateway(db *gorm.DB, userID uint, name, logo string, bankAccountID, c
 	}
 	SetDefaultRoute(db, user, &gateway)
 	err = db.Create(&gateway).Error
+	if err != nil {
+		return nil, err
+	}
+	return &gateway, nil
+}
+
+func UpdateGateway(db *gorm.DB, userID, gatewayID uint, name, logo string, bankAccountID, commissionID uint) (*models.Gateway, error) {
+	gateway, err := GetSpecificGateway(db, userID, gatewayID)
+	if err != nil {
+		return &gateway, err
+	}
+	// set bank account
+	if bankAccountID > 0 && bankAccountID != gateway.BankAccountID {
+		_, err = CheckUserAndBankAccountForGateway(db, userID, bankAccountID)
+		if err != nil {
+			return nil, errors.New("bank account is incorrect")
+		}
+	} else {
+		bankAccountID = gateway.BankAccountID
+	}
+	// set commission
+	if commissionID > 0 && commissionID != gateway.CommissionID {
+		if err = CheckCommission(db, commissionID); err != nil {
+			return nil, errors.New("commission error")
+		}
+	} else {
+		commissionID = gateway.CommissionID
+	}
+
+	if name == "" {
+		name = gateway.Name
+	}
+
+	if logo == "" {
+		logo = gateway.Logo
+	}
+
+	err = db.Model(&gateway).Updates(models.Gateway{Name: name, Logo: logo, CommissionID: commissionID, BankAccountID: bankAccountID}).Error
 	if err != nil {
 		return nil, err
 	}

@@ -77,6 +77,7 @@ func GetUserBankAccounts(db *gorm.DB, userID uint) ([]models.BankAccount, error)
 }*/
 
 // normal
+
 func GetSpecificBankAccount(db *gorm.DB, userID, bankAccountID uint) (models.BankAccount, error) {
 	var bankAccount models.BankAccount
 	err := db.Where("id=? AND user_id=?", bankAccountID, userID).Preload("Bank").First(&bankAccount).Error
