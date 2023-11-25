@@ -14,5 +14,6 @@ auth:
 
 admin:
   name: go fellas
+  username: goFellas
   email: go.fellas@gmail.com
   password: password
