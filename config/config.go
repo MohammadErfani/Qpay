@@ -2,16 +2,20 @@ package config
 
 import (
 	"fmt"
-	"github.com/spf13/viper"
 	"log"
 	"sync"
+	"time"
+
+	"github.com/spf13/viper"
 )
 
 type Config struct {
 	Database Database
 	Server   Server
 	Admin    Admin
+	JWT      JWT
 }
+
 type Database struct {
 	Host     string
 	Port     int
@@ -19,6 +23,7 @@ type Database struct {
 	Password string
 	DB       string
 }
+
 type Server struct {
 	Port int
 }
@@ -28,6 +33,10 @@ type Admin struct {
 	Username string
 	Password string
 	Email    string
+}
+type JWT struct {
+	SecretKey      string
+	ExpirationTime time.Duration
 }
 
 var (
@@ -58,11 +67,17 @@ func InitConfig(configPath string) *Config {
 			Email:    viper.GetString("admin.email"),
 			Password: viper.GetString("admin.password"),
 		}
+		jwt := JWT{
+			SecretKey:      viper.GetString("auth.secret-key"),
+			ExpirationTime: viper.GetDuration("auth.expiresIn"),
+		}
 		configInstance = &Config{
 			Database: db,
 			Server:   srv,
 			Admin:    admin,
+			JWT:      jwt,
 		}
+
 		fmt.Println("config initialized")
 	})
 	return configInstance

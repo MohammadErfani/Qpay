@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 )
 
 var (
@@ -19,10 +20,10 @@ type Server struct {
 	router *echo.Echo
 }
 
-func Instance() *Server {
+func Instance(db *gorm.DB, cfg *config.Config) *Server {
 	once.Do(func() {
 		srv = &Server{
-			router: routes.InitRoutesV1(),
+			router: routes.InitRoutesV1(db, cfg),
 		}
 	})
 	return srv
