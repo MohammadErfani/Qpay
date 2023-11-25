@@ -22,7 +22,7 @@ func SetUserAndBankForBankAccount(db *gorm.DB, bankAccount *models.BankAccount) 
 		return errors.New("invalid sheba, bank name doesn't match by sheba")
 	}
 	bankAccount.BankID = bank.ID
-	// bankAccount.UserID = user.ID
+	bankAccount.UserID = user.ID
 	bankAccount.AccountOwner = user.Name
 	return nil
 }
