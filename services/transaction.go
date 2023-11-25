@@ -26,7 +26,7 @@ func CancelledTransaction(db *gorm.DB, TrackingCode string) error {
 	db.Save(&trans)
 	return nil
 }
-func CreateTransaction(db *gorm.DB, TrackingCode string, PaymentAmount float64, CardYear int, CardMonth int, PhoneNumber string) (*models.Transaction, error) {
+func CreateTransaction(db *gorm.DB, TrackingCode string, PaymentAmount float64, CardYear int, CardMonth int, PhoneNumber string, PurchaserCard string) (*models.Transaction, error) {
 	var transaction models.Transaction
 	var gateway models.Gateway
 	err := db.Where("tracking_code=?", TrackingCode).First(&transaction).Error
@@ -38,7 +38,7 @@ func CreateTransaction(db *gorm.DB, TrackingCode string, PaymentAmount float64, 
 	}
 
 	//اینجا متصل میشیم به ماکبانک مرکزی و تراکنش رو انجام میدیم اگه ارور نداشت
-	if err := utils.Transaction(PaymentAmount, CardYear, CardMonth, PhoneNumber); err != nil {
+	if err := utils.Transaction(PaymentAmount, CardYear, CardMonth, PhoneNumber, PurchaserCard); err != nil {
 		return nil, err
 	}
 	return nil, nil

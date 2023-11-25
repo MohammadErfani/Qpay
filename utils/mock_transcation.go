@@ -1,25 +1,25 @@
 package utils
 
-import "errors"
+import (
+	"errors"
+	"slices"
+)
 
-var cardNumber = map[string]uint{
-	"6037991123787766": 1,
-	"5042061042417820": 2,
-	"5042061042417830": 3,
-	"5042061042417840": 2,
-	"5042061042417850": 2,
-	"5042061042417860": 3,
-	"5042061042417870": 1,
-	"5042061042417880": 1,
-	"5042061042417890": 1,
-}
-
-func Transaction(PaymentAmount float64, CardYear int, CardMonth int, PhoneNumber string) error {
+func Transaction(PaymentAmount float64, CardYear int, CardMonth int, PhoneNumber, PurchaserCard string) error {
 	if err := cardExpireCheck(CardYear, CardMonth); err != nil {
 		return errors.New("card is expire")
 	}
+	if err := IsValidPhoneNumber(PhoneNumber); err != nil {
+		return errors.New("phone number is not correct")
+	}
+	rightCardNumber := []string{"6037991123787766", "5042061042417820", "5042061042417830"}
+	if !slices.Contains(rightCardNumber, PurchaserCard) {
+		return errors.New("card number is not correct")
+	}
+	if PaymentAmount < 10000 || PaymentAmount > 1200000000 {
+		return errors.New("this payment is not correct")
+	}
 	return nil
-
 }
 
 func cardExpireCheck(CardYear int, CardMonth int) error {
