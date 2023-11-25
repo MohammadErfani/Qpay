@@ -70,7 +70,7 @@ func (tr *TransactionHandler) GetTransactionForStart(ctx echo.Context) error {
 	return nil
 }
 
-type TransactionRequest struct {
+type PaymentTransactionRequest struct {
 	PaymentAmount       float64 `json:"payment_amount"`
 	PurchaserCard       string  `json:"purchaser_card"`
 	CardMonth           int     `json:"card_month"`
@@ -96,7 +96,7 @@ func (tr *TransactionHandler) BeginTransaction(ctx echo.Context) error {
 	//	مبلغ پرداخت شده
 	//	کپی و پیست آدرس بازگشتی
 	//	۴ رقم آخر شماره کارت - یا برای ساده‌تر شدن کل شماره کارت
-	var req TransactionRequest
+	var req PaymentTransactionRequest
 	if err := ctx.Bind(&req); err != nil {
 		return ctx.JSON(http.StatusBadRequest, "Bind Error")
 	}
@@ -123,7 +123,7 @@ func (tr *TransactionHandler) BeginTransaction(ctx echo.Context) error {
 	return nil
 
 }
-func ValidateTransaction(gateway *TransactionRequest) error {
+func ValidateTransaction(gateway *PaymentTransactionRequest) error {
 
 	requiredFields := map[string]string{
 		"purchaser_card": gateway.PurchaserCard,
