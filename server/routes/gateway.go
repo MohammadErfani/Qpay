@@ -14,6 +14,5 @@ func GatewayGroup(ctx *echo.Group) {
 	ctx.GET("/gateway", gh.ListAllGateways)     // List all gateways
 	ctx.GET("/gateway/:id", gh.FindGateway)     // find a gateways
 	ctx.PATCH("/gateway/:id", gh.UpdateGateway) // update gateway for a user
-	ctx.DELETE("/gateway/:id", gh.DeleteGateway)
 	ctx.POST("/gateway", gh.RegisterNewGateway) // register gateway for a user
 }

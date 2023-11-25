@@ -105,7 +105,8 @@ func GetSpecificGateway(db *gorm.DB, userID, gatewayID uint) (models.Gateway, er
 }
 func GetGateway(db *gorm.DB, fieldName, fieldValue string) (*models.Gateway, error) {
 	var gateway models.Gateway
-	err := db.First(&gateway, fmt.Sprintf("%s=?", fieldName), fieldValue).Error
+	err := db.Preload("Commission").Preload("BankAccount").
+		First(&gateway, fmt.Sprintf("%s=?", fieldName), fieldValue).Error
 	if err != nil {
 		return nil, errors.New("gateway not found")
 	}
