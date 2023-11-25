@@ -76,26 +76,27 @@ type PaymentTransactionRequest struct {
 	CardMonth           int     `json:"card_month"`
 	CardYear            int     `json:"card_year"`
 	PhoneNumber         string  `json:"phone_number"`
-	TransactionID       int     `json:"transaction_id"`
+	TransactionID       uint    `json:"transaction_id"`
 	PaymentConfirmation bool    `json:"payment_confirmation"` //	دستور پرداخت و کم کردن موجودی (کنسل تراکنش - پرداخت)
 }
+type PaymentTransactionResponse struct {
+	TransactionID  uint    `json:"transaction_id"`
+	TrackingCode   string  `json:"tracking_code"`
+	Status         uint8   `json:"status"`
+	PaymentAmouont float64 `json:"payment_amount"`
+	PurchaserCard  string  `json:"purchaser_card"`
+}
 
+func BeginTransactionResponse(transaction models.Transaction) PaymentTransactionResponse {
+	return PaymentTransactionResponse{
+		TransactionID:  transaction.ID,
+		TrackingCode:   transaction.TrackingCode,
+		Status:         transaction.Status,
+		PaymentAmouont: transaction.PaymentAmount,
+		PurchaserCard:  transaction.PurchaserCard,
+	}
+}
 func (tr *TransactionHandler) BeginTransaction(ctx echo.Context) error {
-	// دریافت پست مقادیر زیر
-	// شماره تراکنش
-	//	شماره کارت
-	//	شماره cvv2
-	//	رمز کارت بانکی
-	//	ماه انقضا کارت
-	//	سال انقضا کارت
-	//	دستور پرداخت و کم کردن موجودی (کنسل تراکنش - پرداخت)
-
-	//	ریسپانس مقادیر زیر
-	//	آی دی تراکنش
-	//	استاتوس تراکنش
-	//	مبلغ پرداخت شده
-	//	کپی و پیست آدرس بازگشتی
-	//	۴ رقم آخر شماره کارت - یا برای ساده‌تر شدن کل شماره کارت
 	var req PaymentTransactionRequest
 	if err := ctx.Bind(&req); err != nil {
 		return ctx.JSON(http.StatusBadRequest, "Bind Error")
@@ -116,11 +117,12 @@ func (tr *TransactionHandler) BeginTransaction(ctx echo.Context) error {
 	}
 
 	// اینجا باید به ماک متصل بشم و یه خروجی ازش بگیرم که مثلا از کارت مشتری پول کم شده
-	if _, err := services.CreateTransaction(tr.DB, req.TransactionID, req.PaymentAmount, req.CardYear, req.CardMonth, req.PhoneNumber, req.PurchaserCard); err != nil {
+	transaction, err := services.CreateTransaction(tr.DB, req.TransactionID, req.PaymentAmount, req.CardYear, req.CardMonth, req.PhoneNumber, req.PurchaserCard)
+	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	return nil
+	return ctx.JSON(http.StatusOK, BeginTransactionResponse(*transaction))
 
 }
 func ValidateTransaction(gateway *PaymentTransactionRequest) error {
@@ -130,8 +132,10 @@ func ValidateTransaction(gateway *PaymentTransactionRequest) error {
 		"phone_number":   gateway.PhoneNumber,
 	}
 	requiredFieldsInt := map[string]int{
-		"card_month":    gateway.CardMonth,
-		"card_year":     gateway.CardYear,
+		"card_month": gateway.CardMonth,
+		"card_year":  gateway.CardYear,
+	}
+	requiredFieldsUint := map[string]uint{
 		"tracking_code": gateway.TransactionID,
 	}
 	requiredFieldsFloat64 := map[string]float64{
@@ -141,6 +145,9 @@ func ValidateTransaction(gateway *PaymentTransactionRequest) error {
 		return err
 	}
 	if err := utils.IsRequiredInt(requiredFieldsInt); err != nil {
+		return err
+	}
+	if err := utils.IsRequiredUint(requiredFieldsUint); err != nil {
 		return err
 	}
 

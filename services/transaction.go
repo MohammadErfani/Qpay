@@ -16,7 +16,7 @@ func GetSpecificTransaction(db *gorm.DB, trackingCode string) (models.Transactio
 	}
 	return transaction, nil
 }
-func CancelledTransaction(db *gorm.DB, TrackingID int) error {
+func CancelledTransaction(db *gorm.DB, TrackingID uint) error {
 	var trans models.Transaction
 	err := db.Where("ID=?", TrackingID).First(&trans).Error
 	if err != nil {
@@ -26,7 +26,7 @@ func CancelledTransaction(db *gorm.DB, TrackingID int) error {
 	db.Save(&trans)
 	return nil
 }
-func CreateTransaction(db *gorm.DB, TransactionID int, PaymentAmount float64, CardYear int, CardMonth int, PhoneNumber string, PurchaserCard string) (*models.Transaction, error) {
+func CreateTransaction(db *gorm.DB, TransactionID uint, PaymentAmount float64, CardYear int, CardMonth int, PhoneNumber string, PurchaserCard string) (*models.Transaction, error) {
 	var transaction models.Transaction
 	var gateway models.Gateway
 	err := db.Where("ID=?", TransactionID).First(&transaction).Error
@@ -60,5 +60,5 @@ func CreateTransaction(db *gorm.DB, TransactionID int, PaymentAmount float64, Ca
 	db.Save(&transaction)
 
 	// حالا بای خروجی را مشخص کنیم
-	return nil, nil
+	return &transaction, nil
 }
