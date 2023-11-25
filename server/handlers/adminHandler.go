@@ -96,16 +96,6 @@ func (aH *AdminHandler) AdminGetCommission(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, SetCommissionsResponse(*comm))
 }
 
-func (aH *AdminHandler) AdminUpdateCommission(ctx echo.Context) error {
-	//TODO change amount,percent,active/inactive
-	return nil
-}
-
-func (aH *AdminHandler) AdminDeleteCommission(ctx echo.Context) error {
-	//TODO delete commission
-	return nil
-}
-
 // user handlers
 
 func (aH *AdminHandler) AdminListUsers(ctx echo.Context) error {

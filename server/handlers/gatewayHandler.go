@@ -113,6 +113,7 @@ func (gh *GatewayHandler) UpdateGateway(ctx echo.Context) error {
 }
 
 func (gh *GatewayHandler) DeleteGateway(ctx echo.Context) error {
+	// Todo
 	return nil
 }
 
