@@ -121,7 +121,7 @@ func (tr *TransactionHandler) BeginTransaction(ctx echo.Context) error {
 	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, err.Error())
 	}
-	return ctx.JSON(http.StatusOK, BeginTransactionResponse(*transaction))
+	return ctx.JSON(http.StatusOK, BeginTransactionResponse(transaction))
 
 }
 func ValidateTransaction(gateway *PaymentTransactionRequest) error {

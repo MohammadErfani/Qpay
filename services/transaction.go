@@ -26,21 +26,21 @@ func CancelledTransaction(db *gorm.DB, TrackingID uint) error {
 	db.Save(&trans)
 	return nil
 }
-func CreateTransaction(db *gorm.DB, TransactionID uint, PaymentAmount float64, CardYear int, CardMonth int, PhoneNumber string, PurchaserCard string) (*models.Transaction, error) {
+func CreateTransaction(db *gorm.DB, TransactionID uint, PaymentAmount float64, CardYear int, CardMonth int, PhoneNumber string, PurchaserCard string) (models.Transaction, error) {
 	var transaction models.Transaction
 	var gateway models.Gateway
 	err := db.Where("ID=?", TransactionID).First(&transaction).Error
 	if err != nil {
-		return &models.Transaction{}, errors.New("transaction Not found")
+		return models.Transaction{}, errors.New("transaction Not found")
 	}
 	if err = db.Preload("Commission").Preload("BankAccount").First(&gateway, fmt.Sprintf("%s=?", "ID"), transaction.GatewayID).Error; err != nil {
-		return nil, errors.New("gateway not found")
+		return models.Transaction{}, errors.New("gateway not found")
 	}
 
 	//اینجا متصل میشیم به ماکبانک مرکزی و تراکنش رو انجام میدیم اگه ارور نداشت
 	TrackingCode, err := utils.Transaction(PaymentAmount, CardYear, CardMonth, PhoneNumber, PurchaserCard)
 	if err != nil {
-		return nil, err
+		return models.Transaction{}, err
 	}
 
 	// باید تراکنش را برای گتوی کاربر ثبت کنیم
@@ -60,5 +60,5 @@ func CreateTransaction(db *gorm.DB, TransactionID uint, PaymentAmount float64, C
 	db.Save(&transaction)
 
 	// حالا بای خروجی را مشخص کنیم
-	return &transaction, nil
+	return transaction, nil
 }
