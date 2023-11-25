@@ -11,7 +11,6 @@ import (
 	"strconv"
 )
 
-
 type CreateTransactionRequest struct {
 	PhoneNumber   string  `json:"phone_number"`
 	PaymentAmount float64 `json:"payment_amount"`
@@ -106,29 +105,27 @@ func (tr *TransactionHandler) GetTransactionForStart(ctx echo.Context) error {
 }
 
 type PaymentTransactionRequest struct {
-	PaymentAmount       float64 `json:"payment_amount"`
-	PurchaserCard       string  `json:"purchaser_card"`
-	CardMonth           int     `json:"card_month"`
-	CardYear            int     `json:"card_year"`
-	PhoneNumber         string  `json:"phone_number"`
-	TransactionID       uint    `json:"transaction_id"`
-	PaymentConfirmation bool    `json:"payment_confirmation"` //	دستور پرداخت و کم کردن موجودی (کنسل تراکنش - پرداخت)
+	PurchaserCard       string `json:"purchaser_card"`
+	CardMonth           int    `json:"card_month"`
+	CardYear            int    `json:"card_year"`
+	TransactionID       uint   `json:"transaction_id"`
+	PaymentConfirmation bool   `json:"payment_confirmation"` //	دستور پرداخت و کم کردن موجودی (کنسل تراکنش - پرداخت)
 }
 type PaymentTransactionResponse struct {
-	TransactionID  uint    `json:"transaction_id"`
-	TrackingCode   string  `json:"tracking_code"`
-	Status         uint8   `json:"status"`
-	PaymentAmouont float64 `json:"payment_amount"`
-	PurchaserCard  string  `json:"purchaser_card"`
+	TransactionID uint    `json:"transaction_id"`
+	TrackingCode  string  `json:"tracking_code"`
+	Status        uint8   `json:"status"`
+	PaymentAmount float64 `json:"payment_amount"`
+	PurchaserCard string  `json:"purchaser_card"`
 }
 
 func BeginTransactionResponse(transaction models.Transaction) PaymentTransactionResponse {
 	return PaymentTransactionResponse{
-		TransactionID:  transaction.ID,
-		TrackingCode:   transaction.TrackingCode,
-		Status:         transaction.Status,
-		PaymentAmouont: transaction.PaymentAmount,
-		PurchaserCard:  transaction.PurchaserCard,
+		TransactionID: transaction.ID,
+		TrackingCode:  transaction.TrackingCode,
+		Status:        transaction.Status,
+		PaymentAmount: transaction.PaymentAmount,
+		PurchaserCard: transaction.PurchaserCard,
 	}
 }
 func (tr *TransactionHandler) BeginTransaction(ctx echo.Context) error {
@@ -152,28 +149,24 @@ func (tr *TransactionHandler) BeginTransaction(ctx echo.Context) error {
 	}
 
 	// اینجا باید به ماک متصل بشم و یه خروجی ازش بگیرم که مثلا از کارت مشتری پول کم شده
-	transaction, err := services.PaymentTransaction(tr.DB, req.TransactionID, req.PaymentAmount, req.CardYear, req.CardMonth, req.PhoneNumber, req.PurchaserCard)
+	transaction, err := services.PaymentTransaction(tr.DB, req.TransactionID, req.CardYear, req.CardMonth, req.PurchaserCard)
 	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, err.Error())
 	}
 	return ctx.JSON(http.StatusOK, BeginTransactionResponse(transaction))
 
 }
-func ValidateTransaction(gateway *PaymentTransactionRequest) error {
+func ValidateTransaction(transaction *PaymentTransactionRequest) error {
 
 	requiredFields := map[string]string{
-		"purchaser_card": gateway.PurchaserCard,
-		"phone_number":   gateway.PhoneNumber,
+		"purchaser_card": transaction.PurchaserCard,
 	}
 	requiredFieldsInt := map[string]int{
-		"card_month": gateway.CardMonth,
-		"card_year":  gateway.CardYear,
+		"card_month": transaction.CardMonth,
+		"card_year":  transaction.CardYear,
 	}
 	requiredFieldsUint := map[string]uint{
-		"tracking_code": gateway.TransactionID,
-	}
-	requiredFieldsFloat64 := map[string]float64{
-		"payment_amount": gateway.PaymentAmount,
+		"transaction_id": transaction.TransactionID,
 	}
 	if err := utils.IsRequired(requiredFields); err != nil {
 		return err
@@ -185,13 +178,8 @@ func ValidateTransaction(gateway *PaymentTransactionRequest) error {
 		return err
 	}
 
-	if err := utils.IsRequiredFloat64(requiredFieldsFloat64); err != nil {
-		return err
-	}
 	return nil
 }
-
-
 
 func (tr *TransactionHandler) VerifyTransaction(ctx echo.Context) error {
 	var transaction models.Transaction
