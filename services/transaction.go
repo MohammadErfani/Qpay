@@ -16,9 +16,9 @@ func GetSpecificTransaction(db *gorm.DB, trackingCode string) (models.Transactio
 	}
 	return transaction, nil
 }
-func CancelledTransaction(db *gorm.DB, TrackingCode string) error {
+func CancelledTransaction(db *gorm.DB, TrackingID int) error {
 	var trans models.Transaction
-	err := db.Where("tracking_code=?", TrackingCode).First(&trans).Error
+	err := db.Where("ID=?", TrackingID).First(&trans).Error
 	if err != nil {
 		return errors.New("transaction Not found")
 	}
@@ -26,10 +26,10 @@ func CancelledTransaction(db *gorm.DB, TrackingCode string) error {
 	db.Save(&trans)
 	return nil
 }
-func CreateTransaction(db *gorm.DB, TrackingCode string, PaymentAmount float64, CardYear int, CardMonth int, PhoneNumber string, PurchaserCard string) (*models.Transaction, error) {
+func CreateTransaction(db *gorm.DB, TransactionID int, PaymentAmount float64, CardYear int, CardMonth int, PhoneNumber string, PurchaserCard string) (*models.Transaction, error) {
 	var transaction models.Transaction
 	var gateway models.Gateway
-	err := db.Where("tracking_code=?", TrackingCode).First(&transaction).Error
+	err := db.Where("ID=?", TransactionID).First(&transaction).Error
 	if err != nil {
 		return &models.Transaction{}, errors.New("transaction Not found")
 	}
@@ -38,7 +38,8 @@ func CreateTransaction(db *gorm.DB, TrackingCode string, PaymentAmount float64, 
 	}
 
 	//اینجا متصل میشیم به ماکبانک مرکزی و تراکنش رو انجام میدیم اگه ارور نداشت
-	if err := utils.Transaction(PaymentAmount, CardYear, CardMonth, PhoneNumber, PurchaserCard); err != nil {
+	TrackingCode, err := utils.Transaction(PaymentAmount, CardYear, CardMonth, PhoneNumber, PurchaserCard)
+	if err != nil {
 		return nil, err
 	}
 

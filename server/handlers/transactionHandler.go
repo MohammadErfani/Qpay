@@ -76,7 +76,7 @@ type PaymentTransactionRequest struct {
 	CardMonth           int     `json:"card_month"`
 	CardYear            int     `json:"card_year"`
 	PhoneNumber         string  `json:"phone_number"`
-	TrackingCode        string  `json:"tracking_code"`
+	TransactionID       int     `json:"transaction_id"`
 	PaymentConfirmation bool    `json:"payment_confirmation"` //	دستور پرداخت و کم کردن موجودی (کنسل تراکنش - پرداخت)
 }
 
@@ -103,7 +103,7 @@ func (tr *TransactionHandler) BeginTransaction(ctx echo.Context) error {
 	// اینجا چک میکنه اگه طرف فیلد پیمنت کانفیرم رو فالس داده بود
 	//یعنی میخواد پرداخت رو کنسل کنه و پرداخت انجام نده
 	if !req.PaymentConfirmation {
-		if err := services.CancelledTransaction(tr.DB, req.TrackingCode); err != nil {
+		if err := services.CancelledTransaction(tr.DB, req.TransactionID); err != nil {
 			return ctx.JSON(http.StatusBadRequest, err.Error())
 		}
 		return ctx.JSON(http.StatusNotAcceptable, "your Payment Transaction is Canceled")
@@ -116,7 +116,7 @@ func (tr *TransactionHandler) BeginTransaction(ctx echo.Context) error {
 	}
 
 	// اینجا باید به ماک متصل بشم و یه خروجی ازش بگیرم که مثلا از کارت مشتری پول کم شده
-	if _, err := services.CreateTransaction(tr.DB, req.TrackingCode, req.PaymentAmount, req.CardYear, req.CardMonth, req.PhoneNumber, req.PurchaserCard); err != nil {
+	if _, err := services.CreateTransaction(tr.DB, req.TransactionID, req.PaymentAmount, req.CardYear, req.CardMonth, req.PhoneNumber, req.PurchaserCard); err != nil {
 		return ctx.JSON(http.StatusBadRequest, err.Error())
 	}
 
@@ -127,12 +127,12 @@ func ValidateTransaction(gateway *PaymentTransactionRequest) error {
 
 	requiredFields := map[string]string{
 		"purchaser_card": gateway.PurchaserCard,
-		"tracking_code":  gateway.TrackingCode,
 		"phone_number":   gateway.PhoneNumber,
 	}
 	requiredFieldsInt := map[string]int{
-		"card_month": gateway.CardMonth,
-		"card_year":  gateway.CardYear,
+		"card_month":    gateway.CardMonth,
+		"card_year":     gateway.CardYear,
+		"tracking_code": gateway.TransactionID,
 	}
 	requiredFieldsFloat64 := map[string]float64{
 		"payment_amount": gateway.PaymentAmount,
