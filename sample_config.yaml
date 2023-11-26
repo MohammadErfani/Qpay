@@ -10,7 +10,7 @@ server:
 
 auth:
   secret-key: mysecretkey
-  expiresIn: 360
+  expiresIn: 15
 
 admin:
   name: go fellas

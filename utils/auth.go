@@ -19,7 +19,7 @@ type Credential struct {
 func newCredential(userID int, duration time.Duration) *Credential {
 	cred := &Credential{
 		ID:             userID,
-		ExpirationTime: time.Now().Add(duration * 600000000),
+		ExpirationTime: time.Now().Add(duration * time.Minute),
 	}
 	return cred
 }
