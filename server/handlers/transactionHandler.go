@@ -37,11 +37,29 @@ type TransactionResponse struct {
 }
 
 func (tr *TransactionHandler) ListAllTransaction(ctx echo.Context) error {
-	return nil
+	gatewayID, err := strconv.Atoi(ctx.Param("gatewayID"))
+	transactions, err := services.GetUserTransactions(tr.DB, tr.UserID, uint(gatewayID))
+	if err != nil {
+		return ctx.JSON(http.StatusBadRequest, "You didn't Any Transaction")
+	}
+	var TransactionResponses []PaymentTransactionResponse
+	for _, ba := range transactions {
+		TransactionResponses = append(TransactionResponses, BeginTransactionResponse(ba))
+	}
+	return ctx.JSON(http.StatusOK, TransactionResponses)
 }
 
 func (tr *TransactionHandler) FindTransaction(ctx echo.Context) error {
-	return nil
+	var transaction models.Transaction
+	transactionID, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		return ctx.JSON(http.StatusBadRequest, "gateway is not correct")
+	}
+	transaction, err = services.FindTransaction(tr.DB, tr.UserID, uint(transactionID))
+	if err != nil {
+		return ctx.JSON(http.StatusNotFound, "Gateway does not exist!")
+	}
+	return ctx.JSON(http.StatusOK, BeginTransactionResponse(transaction))
 }
 
 func (tr *TransactionHandler) FilterTransaction(ctx echo.Context) error {

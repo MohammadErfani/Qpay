@@ -11,10 +11,10 @@ func TransactionGroup(ctx *echo.Group) {
 		UserID: 1,
 		DB:     database.DB(),
 	}
-	ctx.GET("/transaction/list/", tr.ListAllTransaction)
+	ctx.GET("/transaction/:gatewayID/list/", tr.ListAllTransaction)
 	ctx.GET("/transaction/find/:id", tr.FindTransaction)
-	ctx.POST("/transaction/filter/", tr.FilterTransaction)
-	ctx.POST("/transaction/search/", tr.SearchTransaction)
+	ctx.POST("/transaction/:gatewayID/filter/", tr.FilterTransaction)
+	ctx.POST("/transaction/:gatewayID/search/", tr.SearchTransaction)
 	// یکی کردن پرسنال و بیزینس
 	ctx.POST("/transaction/create/:route", tr.CreateTransaction)
 	//ctx.POST("/gateway/:route", tr.RequestPersonalTransaction)

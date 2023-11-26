@@ -96,3 +96,25 @@ func PaymentTransaction(db *gorm.DB, TransactionID uint, CardYear int, CardMonth
 	// حالا بای خروجی را مشخص کنیم
 	return transaction, nil
 }
+
+func GetUserTransactions(db *gorm.DB, userID, gatewayID uint) ([]models.Transaction, error) {
+
+	var transactions []models.Transaction
+	err := db.Where("user_id=? AND gatewayID=?", userID, gatewayID).Preload("User").Find(&transactions).Error
+	if err != nil {
+		return transactions, err
+	}
+
+	if len(transactions) == 0 {
+		return []models.Transaction{}, errors.New("this user doesn't have any transaction")
+	}
+	return transactions, nil
+}
+func FindTransaction(db *gorm.DB, userID, transactionID uint) (models.Transaction, error) {
+	var transaction models.Transaction
+	err := db.Where("id=? AND UserID=?", transactionID, userID).Preload("User").First(&transaction).Error
+	if err != nil {
+		return models.Transaction{}, errors.New("transaction Not found")
+	}
+	return transaction, nil
+}
