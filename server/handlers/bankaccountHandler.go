@@ -15,10 +15,6 @@ type BankAccountRequest struct {
 	Sheba string `json:"sheba" xml:"sheba" form:"sheba" query:"sheba"`
 }
 
-type BankAccountHandler struct {
-	DB     *gorm.DB
-	UserID uint
-}
 type BankAccountResponse struct {
 	Sheba        string `json:"sheba"`
 	BankName     string `json:"bank_name"`
@@ -27,11 +23,14 @@ type BankAccountResponse struct {
 	Status       string `json:"status"`
 }
 
-func (ba *BankAccountHandler) ListAllBankAccounts(ctx echo.Context) error {
-
-	bankAccounts, err := services.GetUserBankAccounts(ba.DB, ba.UserID)
+func (h *Handler) ListAllBankAccounts(ctx echo.Context) error {
+	h.SetUserID(ctx)
+	bankAccounts, err := services.GetUserBankAccounts(h.DB, h.UserID)
 	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, "You didn't add any bank account!")
+		return ctx.JSON(http.StatusBadRequest, Response{
+			Status:  "error",
+			Message: "You didn't add any bank account!",
+		})
 	}
 	var bankAccountResponses []BankAccountResponse
 	for _, ba := range bankAccounts {
@@ -40,52 +39,88 @@ func (ba *BankAccountHandler) ListAllBankAccounts(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, bankAccountResponses)
 
 }
-func (ba *BankAccountHandler) FindBankAccount(ctx echo.Context) error {
+func (h *Handler) FindBankAccount(ctx echo.Context) error {
+	h.SetUserID(ctx)
 	var bankAccount models.BankAccount
 	bankAccountID, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, "bank account is not correct")
+		return ctx.JSON(http.StatusBadRequest, Response{
+			Status:  "error",
+			Message: "bank account is not correct",
+		})
 	}
-	bankAccount, err = services.GetSpecificBankAccount(ba.DB, ba.UserID, uint(bankAccountID))
+	bankAccount, err = services.GetSpecificBankAccount(h.DB, h.UserID, uint(bankAccountID))
 	if err != nil {
-		return ctx.JSON(http.StatusNotFound, "bank account does not exist!")
+		return ctx.JSON(http.StatusNotFound, Response{
+			Status:  "error",
+			Message: "bank account does not exist!",
+		})
 	}
 	bankAccountResponse := SetBankAccountResponse(bankAccount)
 	return ctx.JSON(http.StatusOK, bankAccountResponse)
 }
 
-func (ba *BankAccountHandler) RegisterNewBankAccount(ctx echo.Context) error {
+func (h *Handler) RegisterNewBankAccount(ctx echo.Context) error {
+	h.SetUserID(ctx)
 	var req BankAccountRequest
 	if err := ctx.Bind(&req); err != nil {
-		return ctx.JSON(http.StatusBadRequest, "Bind Error")
+		return ctx.JSON(http.StatusBadRequest, Response{
+			Status:  "error",
+			Message: "Bind Error",
+		})
 	}
 	err := utils.CheckSheba(req.Sheba)
 	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, err.Error())
+		return ctx.JSON(http.StatusBadRequest, Response{
+			Status:  "error",
+			Message: err.Error(),
+		})
 	}
-	if err := ValidateUniqueBankAccount(ba.DB, &req); err != nil {
-		return ctx.JSON(http.StatusConflict, err.Error())
+	if err = ValidateUniqueBankAccount(h.DB, &req); err != nil {
+		return ctx.JSON(http.StatusConflict, Response{
+			Status:  "error",
+			Message: err.Error(),
+		})
 	}
-	_, err = services.CreateBankAccount(ba.DB, ba.UserID, req.Sheba)
+	_, err = services.CreateBankAccount(h.DB, h.UserID, req.Sheba)
 	if err != nil {
 		if err.Error() == "UnAuthorize" {
-			return ctx.JSON(http.StatusForbidden, "sheba doesn't match your credential")
+			return ctx.JSON(http.StatusForbidden, Response{
+				Status:  "error",
+				Message: "sheba doesn't match your credential",
+			})
 		}
-		return ctx.JSON(http.StatusInternalServerError, "Internal server error in create bank account")
+		return ctx.JSON(http.StatusInternalServerError, Response{
+			Status:  "error",
+			Message: "Internal server error in create bank account",
+		})
 	}
-	return ctx.JSON(http.StatusOK, "You're bank account is successfully registered!")
+	return ctx.JSON(http.StatusCreated, Response{
+		Status:  "success",
+		Message: "You're bank account is successfully registered!",
+	})
 }
 
-func (ba *BankAccountHandler) DeleteBankAccount(ctx echo.Context) error {
+func (h *Handler) DeleteBankAccount(ctx echo.Context) error {
+	h.SetUserID(ctx)
 	bankAccountID, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, "bank account is not correct")
+		return ctx.JSON(http.StatusBadRequest, Response{
+			Status:  "error",
+			Message: "bank account is not correct",
+		})
 	}
-	err = services.DeleteBankAccount(ba.DB, ba.UserID, uint(bankAccountID))
+	err = services.DeleteBankAccount(h.DB, h.UserID, uint(bankAccountID))
 	if err != nil {
-		return ctx.JSON(http.StatusNotFound, err.Error())
+		return ctx.JSON(http.StatusNotFound, Response{
+			Status:  "error",
+			Message: err.Error(),
+		})
 	}
-	return ctx.JSON(http.StatusOK, "You're bank account is successfully deleted!")
+	return ctx.JSON(http.StatusOK, Response{
+		Status:  "success",
+		Message: "You're bank account is successfully deleted!",
+	})
 }
 
 func ValidateUniqueBankAccount(db *gorm.DB, bankAccount *BankAccountRequest) error {

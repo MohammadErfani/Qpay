@@ -7,14 +7,13 @@ import (
 )
 
 func BankAccountGroup(bc *echo.Group) {
-	ba := &handlers.BankAccountHandler{
-		DB:     database.DB(),
-		UserID: 1,
+	h := &handlers.Handler{
+		DB: database.DB(),
 	}
-	bc.GET("/bankaccount", ba.ListAllBankAccounts)      // List all cards
-	bc.GET("/bankaccount/:id", ba.FindBankAccount)      // find a card
-	bc.POST("/bankaccount", ba.RegisterNewBankAccount)  // register card for a user
-	bc.DELETE("/bankaccount/:id", ba.DeleteBankAccount) // delete card for a user
+	bc.GET("/bankaccount", h.ListAllBankAccounts)      // List all cards
+	bc.GET("/bankaccount/:id", h.FindBankAccount)      // find a card
+	bc.POST("/bankaccount", h.RegisterNewBankAccount)  // register card for a user
+	bc.DELETE("/bankaccount/:id", h.DeleteBankAccount) // delete card for a user
 }
 
 /*

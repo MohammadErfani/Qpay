@@ -18,10 +18,6 @@ type AdminRequest struct {
 	Password string `json:"password" binding:"required"`
 }
 
-type AdminHandler struct {
-	DB *gorm.DB
-}
-
 type CommissionRequest struct {
 	AmountPerTrans  float64 `json:"amount_per_transaction"`
 	PercentPerTrans float64 `json:"Percent_per_transaction"`
@@ -34,7 +30,7 @@ type CommissionResponse struct {
 	Status          string  `json:"status"`
 }
 
-func (aH *AdminHandler) AdminCreate(ctx echo.Context) error {
+func (h *Handler) AdminCreate(ctx echo.Context) error {
 	var req AdminRequest
 	if err := ctx.Bind(&req); err != nil {
 		return ctx.JSON(http.StatusBadRequest, "Bind Error")
@@ -42,11 +38,11 @@ func (aH *AdminHandler) AdminCreate(ctx echo.Context) error {
 	if err := ValidateAdmin(&req); err != nil {
 		return ctx.JSON(http.StatusForbidden, err.Error())
 	}
-	if err := ValidateUniqueAdmin(aH.DB, &req); err != nil {
+	if err := ValidateUniqueAdmin(h.DB, &req); err != nil {
 		return ctx.JSON(http.StatusConflict, err.Error())
 	}
 	_, err := services.CreateAdmin(
-		aH.DB,
+		h.DB,
 		req.Name,
 		req.Username,
 		req.Email,
@@ -55,15 +51,15 @@ func (aH *AdminHandler) AdminCreate(ctx echo.Context) error {
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, "Internal server error in create admin")
 	}
-	return ctx.JSON(http.StatusCreated, RegisterResponse{Status: "success", Message: "Admin created successfully"})
+	return ctx.JSON(http.StatusCreated, Response{Status: "success", Message: "Admin created successfully"})
 
 }
 
 // commission handlers
 
 // AdminListAllCommission  for commission manager return all commission
-func (aH *AdminHandler) AdminListAllCommission(ctx echo.Context) error {
-	commissions, err := services.ListAllCommission(aH.DB)
+func (h *Handler) AdminListAllCommission(ctx echo.Context) error {
+	commissions, err := services.ListAllCommission(h.DB)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, "Internal server error in getting commissions")
 	}
@@ -75,21 +71,21 @@ func (aH *AdminHandler) AdminListAllCommission(ctx echo.Context) error {
 
 }
 
-func (aH *AdminHandler) AdminCreateCommission(ctx echo.Context) error {
+func (h *Handler) AdminCreateCommission(ctx echo.Context) error {
 	var req CommissionRequest
 	if err := ctx.Bind(&req); err != nil {
 		return ctx.JSON(http.StatusBadRequest, "Bind Error")
 	}
-	comm, err := services.CreateCommission(aH.DB, req.AmountPerTrans, req.PercentPerTrans)
+	comm, err := services.CreateCommission(h.DB, req.AmountPerTrans, req.PercentPerTrans)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, "Internal server error in creating commission")
 	}
 	return ctx.JSON(http.StatusCreated, SetCommissionsResponse(*comm))
 }
 
-func (aH *AdminHandler) AdminGetCommission(ctx echo.Context) error {
+func (h *Handler) AdminGetCommission(ctx echo.Context) error {
 	commID := ctx.Param("id")
-	comm, err := services.GetCommission(aH.DB, "id", fmt.Sprintf("%v", commID))
+	comm, err := services.GetCommission(h.DB, "id", fmt.Sprintf("%v", commID))
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, "commission not found!")
 	}
@@ -98,51 +94,51 @@ func (aH *AdminHandler) AdminGetCommission(ctx echo.Context) error {
 
 // user handlers
 
-func (aH *AdminHandler) AdminListUsers(ctx echo.Context) error {
+func (h *Handler) AdminListUsers(ctx echo.Context) error {
 	//TODO
 	return nil
 }
 
-func (aH *AdminHandler) AdminGetUser(ctx echo.Context) error {
+func (h *Handler) AdminGetUser(ctx echo.Context) error {
 	//TODO
 	return nil
 }
 
-func (aH *AdminHandler) AdminUpdateUser(ctx echo.Context) error {
+func (h *Handler) AdminUpdateUser(ctx echo.Context) error {
 	//TODO for block unblock all user gateways,...
 	return nil
 }
 
 // gateway handlers
 
-func (aH *AdminHandler) AdminListAllGateways(ctx echo.Context) error {
+func (h *Handler) AdminListAllGateways(ctx echo.Context) error {
 	//TODO without authorize
 	return nil
 }
 
-func (aH *AdminHandler) AdminGetGateway(ctx echo.Context) error {
+func (h *Handler) AdminGetGateway(ctx echo.Context) error {
 	//TODO without authorize
 	return nil
 }
 
-func (aH *AdminHandler) AdminUpdateGateway(ctx echo.Context) error {
+func (h *Handler) AdminUpdateGateway(ctx echo.Context) error {
 	//TODO block unblock,...
 	return nil
 }
 
 // transaction handlers
 
-func (aH *AdminHandler) AdminListTransactions(ctx echo.Context) error {
+func (h *Handler) AdminListTransactions(ctx echo.Context) error {
 	//TODO
 	return nil
 }
 
-func (aH *AdminHandler) AdminGetTransaction(ctx echo.Context) error {
+func (h *Handler) AdminGetTransaction(ctx echo.Context) error {
 	//TODO
 	return nil
 }
 
-func (aH *AdminHandler) AdminUpdateTransaction(ctx echo.Context) error {
+func (h *Handler) AdminUpdateTransaction(ctx echo.Context) error {
 	//TODO
 	return nil
 }

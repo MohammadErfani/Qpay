@@ -6,7 +6,6 @@ import (
 	"Qpay/utils"
 	"fmt"
 	"github.com/labstack/echo/v4"
-	"gorm.io/gorm"
 	"net/http"
 	"strconv"
 )
@@ -19,10 +18,6 @@ type CreateTransactionResponse struct {
 	TransactionID uint `json:"id"`
 }
 
-type TransactionHandler struct {
-	DB     *gorm.DB
-	UserID uint
-}
 type TransactionStartResponse struct {
 	PaymentAmount float64 `json:"payment_amount"`
 	OwnerName     string  `json:"owner_name"`
@@ -36,44 +31,47 @@ type TransactionResponse struct {
 	PaymentDate   string  `json:"payment_date"`
 }
 
-func (tr *TransactionHandler) ListAllTransaction(ctx echo.Context) error {
+func (h *Handler) ListAllTransaction(ctx echo.Context) error {
+	h.SetUserID(ctx)
 	return nil
 }
 
-func (tr *TransactionHandler) FindTransaction(ctx echo.Context) error {
+func (h *Handler) FindTransaction(ctx echo.Context) error {
+	h.SetUserID(ctx)
 	return nil
 }
 
-func (tr *TransactionHandler) FilterTransaction(ctx echo.Context) error {
+func (h *Handler) FilterTransaction(ctx echo.Context) error {
+	h.SetUserID(ctx)
 	//	امکان فیلتر کردن تراکنش‌ها بر حسب تاریخ و یا قیمت (بازه زمانی و یا قیمتی)
 	return nil
 }
-func (tr *TransactionHandler) SearchTransaction(ctx echo.Context) error {
+func (h *Handler) SearchTransaction(ctx echo.Context) error {
+	h.SetUserID(ctx)
 	//	امکان جستجو در تراکنش‌های ثبت شده بر حسب تاریخ و یا قیمت (بازه زمانی و یا قیمتی)
 	return nil
 }
 
-func (tr *TransactionHandler) CreateTransaction(ctx echo.Context) error {
-
+func (h *Handler) CreateTransaction(ctx echo.Context) error {
 	route := ctx.Param("route")
 	var req CreateTransactionRequest
 	if err := ctx.Bind(&req); err != nil {
 		return ctx.JSON(http.StatusBadRequest, "Bind Error")
 	}
-	gateway, err := services.GetGateway(tr.DB, "route", route)
+	gateway, err := services.GetGateway(h.DB, "route", route)
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, "No get way with such route")
 	}
 
 	commission := req.PaymentAmount*gateway.Commission.PercentagePerTrans + gateway.Commission.AmountPerTrans
-	model, err := services.CreateTransaction(tr.DB, gateway.ID, req.PaymentAmount, req.PhoneNumber, commission)
+	model, err := services.CreateTransaction(h.DB, gateway.ID, req.PaymentAmount, req.PhoneNumber, commission)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, err.Error())
 	}
 	return ctx.JSON(http.StatusOK, CreateTransactionResponse{TransactionID: model.ID})
 }
 
-//	func (tr *TransactionHandler) RequestPersonalTransaction(ctx echo.Context) error {
+//	func (tr *Handler) RequestPersonalTransaction(ctx echo.Context) error {
 //		// دریافت پست مقادیر زیر
 //		//	آدرس درگاه - Route - باید به آی دی تبدیل بشه
 //		//	مقدار پرداخت
@@ -84,7 +82,7 @@ func (tr *TransactionHandler) CreateTransaction(ctx echo.Context) error {
 //		return nil
 //	}
 //
-//	func (tr *TransactionHandler) RequestBusinessTransaction(ctx echo.Context) error {
+//	func (tr *Handler) RequestBusinessTransaction(ctx echo.Context) error {
 //		// دریافت پست مقادیر زیر
 //		//	آی دی درگاه merchantId
 //		//	مقدار پرداخت
@@ -94,13 +92,13 @@ func (tr *TransactionHandler) CreateTransaction(ctx echo.Context) error {
 //		//	آی دی تراکنش
 //		return nil
 //	}
-func (tr *TransactionHandler) GetTransactionForStart(ctx echo.Context) error {
+func (h *Handler) GetTransactionForStart(ctx echo.Context) error {
 	transactionid, _ := strconv.ParseUint(ctx.Param("id"), 10, 64)
-	transaction, err := services.GetTransactionByID(tr.DB, uint(transactionid))
+	transaction, err := services.GetTransactionByID(h.DB, uint(transactionid))
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, err.Error())
 	}
-	gateway, err := services.GetGateway(tr.DB, "id", fmt.Sprintf("%v", transaction.GatewayID))
+	gateway, err := services.GetGateway(h.DB, "id", fmt.Sprintf("%v", transaction.GatewayID))
 	return ctx.JSON(http.StatusOK, TransactionStartResponse{PaymentAmount: transaction.PaymentAmount, OwnerName: gateway.BankAccount.AccountOwner})
 }
 
@@ -128,7 +126,7 @@ func BeginTransactionResponse(transaction models.Transaction) PaymentTransaction
 		PurchaserCard: transaction.PurchaserCard,
 	}
 }
-func (tr *TransactionHandler) BeginTransaction(ctx echo.Context) error {
+func (h *Handler) BeginTransaction(ctx echo.Context) error {
 	var req PaymentTransactionRequest
 	if err := ctx.Bind(&req); err != nil {
 		return ctx.JSON(http.StatusBadRequest, "Bind Error")
@@ -136,7 +134,7 @@ func (tr *TransactionHandler) BeginTransaction(ctx echo.Context) error {
 	// اینجا چک میکنه اگه طرف فیلد پیمنت کانفیرم رو فالس داده بود
 	//یعنی میخواد پرداخت رو کنسل کنه و پرداخت انجام نده
 	if !req.PaymentConfirmation {
-		if err := services.CancelledTransaction(tr.DB, req.TransactionID); err != nil {
+		if err := services.CancelledTransaction(h.DB, req.TransactionID); err != nil {
 			return ctx.JSON(http.StatusBadRequest, err.Error())
 		}
 		return ctx.JSON(http.StatusNotAcceptable, "your Payment Transaction is Canceled")
@@ -149,7 +147,7 @@ func (tr *TransactionHandler) BeginTransaction(ctx echo.Context) error {
 	}
 
 	// اینجا باید به ماک متصل بشم و یه خروجی ازش بگیرم که مثلا از کارت مشتری پول کم شده
-	transaction, err := services.PaymentTransaction(tr.DB, req.TransactionID, req.CardYear, req.CardMonth, req.PurchaserCard)
+	transaction, err := services.PaymentTransaction(h.DB, req.TransactionID, req.CardYear, req.CardMonth, req.PurchaserCard)
 	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, err.Error())
 	}
@@ -181,10 +179,10 @@ func ValidateTransaction(transaction *PaymentTransactionRequest) error {
 	return nil
 }
 
-func (tr *TransactionHandler) VerifyTransaction(ctx echo.Context) error {
+func (h *Handler) VerifyTransaction(ctx echo.Context) error {
 	var transaction models.Transaction
 	trackingCode := ctx.Param("tracking_code")
-	transaction, err := services.GetSpecificTransaction(tr.DB, trackingCode)
+	transaction, err := services.GetSpecificTransaction(h.DB, trackingCode)
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, "Transaction does not exist!")
 	}

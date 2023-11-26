@@ -3,6 +3,8 @@ package services
 import (
 	"Qpay/models"
 	"Qpay/utils"
+	"errors"
+	"fmt"
 	"gorm.io/gorm"
 )
 
@@ -25,4 +27,17 @@ func CreateAdmin(db *gorm.DB, name, username, email, password string) (*models.U
 	}
 
 	return &admin, nil
+}
+
+func CheckIsAdmin(db *gorm.DB, userID uint) error {
+	var role uint8
+	err := db.Model(&models.User{}).Select("role").Where("id", userID).Scan(&role).Error
+	fmt.Println(role)
+	if err != nil {
+		return errors.New("error getting user")
+	}
+	if role != models.IsAdmin {
+		return errors.New("unAuthorize")
+	}
+	return nil
 }

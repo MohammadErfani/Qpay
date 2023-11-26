@@ -7,20 +7,20 @@ import (
 )
 
 func AdminGroup(adminG *echo.Group) {
-	aH := handlers.AdminHandler{
+	h := handlers.Handler{
 		DB: database.DB(),
 	}
-	adminG.POST("/admin/register", aH.AdminCreate)
-	adminG.GET("/admin/commission", aH.AdminListAllCommission)
-	adminG.GET("/admin/commission/:id", aH.AdminGetCommission)
-	adminG.POST("/admin/commission", aH.AdminCreateCommission)
-	adminG.GET("/admin/user", aH.AdminListUsers)
-	adminG.GET("/admin/user/:id", aH.AdminGetUser)
-	adminG.PATCH("/admin/user/:id", aH.AdminUpdateUser)
-	adminG.GET("/admin/gateway", aH.AdminListAllGateways)
-	adminG.GET("/admin/gateway/:id", aH.AdminGetGateway)
-	adminG.PATCH("/admin/gateway/:id", aH.AdminUpdateGateway)
-	adminG.GET("/admin/transaction", aH.AdminListTransactions)
-	adminG.GET("/admin/transaction/:id", aH.AdminGetTransaction)
-	adminG.PATCH("/admin/transaction/:id", aH.AdminUpdateTransaction)
+	adminG.POST("/admin/register", h.AdminCreate)
+	adminG.GET("/admin/commission", h.AdminListAllCommission)
+	adminG.GET("/admin/commission/:id", h.AdminGetCommission)
+	adminG.POST("/admin/commission", h.AdminCreateCommission)
+	adminG.GET("/admin/user", h.AdminListUsers)
+	adminG.GET("/admin/user/:id", h.AdminGetUser)
+	adminG.PATCH("/admin/user/:id", h.AdminUpdateUser)
+	adminG.GET("/admin/gateway", h.AdminListAllGateways)
+	adminG.GET("/admin/gateway/:id", h.AdminGetGateway)
+	adminG.PATCH("/admin/gateway/:id", h.AdminUpdateGateway)
+	adminG.GET("/admin/transaction", h.AdminListTransactions)
+	adminG.GET("/admin/transaction/:id", h.AdminGetTransaction)
+	adminG.PATCH("/admin/transaction/:id", h.AdminUpdateTransaction)
 }

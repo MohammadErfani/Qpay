@@ -44,6 +44,21 @@ func seed(configPath string) {
 	if err != nil {
 		log.Fatal("Error seeding User", err)
 	}
+	password, _ = utils.HashPassword("1234")
+	user = models.User{
+		Name:        "Mohammad Erfani",
+		Email:       "mohammad@gmail.com",
+		Username:    "mohammadErfani",
+		Password:    password,
+		PhoneNumber: "09121111111",
+		Address:     "Tehran,...",
+		Identity:    "0441111111",
+		Role:        models.IsNaturalPerson,
+	}
+	err = db.Where(models.User{Email: user.Email}).Or(models.User{PhoneNumber: user.PhoneNumber}).Or(models.User{Username: user.Username}).FirstOrCreate(&user).Error
+	if err != nil {
+		log.Fatal("Error seeding User", err)
+	}
 	banks := []models.Bank{
 		{
 			Name: "ملی ایران",

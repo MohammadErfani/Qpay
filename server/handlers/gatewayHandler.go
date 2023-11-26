@@ -6,7 +6,6 @@ import (
 	"Qpay/utils"
 	"fmt"
 	"github.com/labstack/echo/v4"
-	"gorm.io/gorm"
 	"net/http"
 	"strconv"
 )
@@ -30,10 +29,6 @@ type GatewayResponse struct {
 	Type          string `json:"type"`
 }
 
-type GatewayHandler struct {
-	DB     *gorm.DB
-	UserID uint
-}
 type ChangeGatewayRequest struct {
 	BankAccountID uint `json:"bank_account_id"`
 	GatewayID     uint `json:"gateway_id"`
@@ -46,79 +41,120 @@ type UpdateGatewayRequest struct {
 	Logo          string `json:"logo"`
 }
 
-func (gh *GatewayHandler) ListAllGateways(ctx echo.Context) error {
-	gateways, err := services.GetUserGateways(gh.DB, gh.UserID)
+func (h *Handler) ListAllGateways(ctx echo.Context) error {
+	h.SetUserID(ctx)
+	gateways, err := services.GetUserGateways(h.DB, h.UserID)
 	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, "You didn't Add Any Gateway. Please Register a Gateway!")
+		return ctx.JSON(http.StatusBadRequest, Response{
+			Status:  "error",
+			Message: "You didn't Add Any Gateway. Please Register a Gateway!",
+		})
 	}
 	var GatewayResponses []GatewayResponse
-	for _, ba := range gateways {
-		GatewayResponses = append(GatewayResponses, SetGatewayResponse(ba))
+	for _, g := range gateways {
+		GatewayResponses = append(GatewayResponses, SetGatewayResponse(g))
 	}
 	return ctx.JSON(http.StatusOK, GatewayResponses)
 
 }
 
-func (gh *GatewayHandler) FindGateway(ctx echo.Context) error {
+func (h *Handler) FindGateway(ctx echo.Context) error {
+	h.SetUserID(ctx)
 	var gateway models.Gateway
 	gatewayID, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, "gateway is not correct")
+		return ctx.JSON(http.StatusBadRequest, Response{
+			Status:  "error",
+			Message: "gateway is not correct",
+		})
 	}
-	gateway, err = services.GetSpecificGateway(gh.DB, gh.UserID, uint(gatewayID))
+	gateway, err = services.GetSpecificGateway(h.DB, h.UserID, uint(gatewayID))
 	if err != nil {
-		return ctx.JSON(http.StatusNotFound, "Gateway does not exist!")
+		return ctx.JSON(http.StatusNotFound, Response{
+			Status:  "error",
+			Message: "Gateway does not exist!",
+		})
 	}
 	return ctx.JSON(http.StatusOK, SetGatewayResponse(gateway))
 }
 
-func (gh *GatewayHandler) RegisterNewGateway(ctx echo.Context) error {
+func (h *Handler) RegisterNewGateway(ctx echo.Context) error {
+	h.SetUserID(ctx)
 	var req GatewayRequest
 	if err := ctx.Bind(&req); err != nil {
-		return ctx.JSON(http.StatusBadRequest, "Bind Error")
+		return ctx.JSON(http.StatusBadRequest, Response{
+			Status:  "error",
+			Message: "Bind Error",
+		})
 	}
 	if err := ValidateGateway(&req); err != nil {
-		return ctx.JSON(http.StatusBadRequest, err.Error())
+		return ctx.JSON(http.StatusBadRequest, Response{
+			Status:  "error",
+			Message: err.Error(),
+		})
 	}
 	//if err := ValidateUniqueGateway(gh.DB, &req); err != nil {
 	//	return ctx.JSON(http.StatusConflict, err.Error())
 	//}
-	_, err := services.CreateGateway(gh.DB, gh.UserID, req.Name, req.Logo, req.BankAccountID, req.CommissionID, req.IsPersonal)
+	_, err := services.CreateGateway(h.DB, h.UserID, req.Name, req.Logo, req.BankAccountID, req.CommissionID, req.IsPersonal)
 	if err != nil {
 		fmt.Println(err.Error())
 		if err.Error() == "UnAuthorize" {
-			return ctx.JSON(http.StatusForbidden, "gateway doesn't match your credential")
+			return ctx.JSON(http.StatusForbidden, Response{
+				Status:  "error",
+				Message: "gateway doesn't match your credential",
+			})
 		}
 		if err.Error() == "personal error" {
-			return ctx.JSON(http.StatusForbidden, "you already have personal gateway")
+			return ctx.JSON(http.StatusForbidden, Response{
+				Status:  "error",
+				Message: "you already have personal gateway",
+			})
 		}
 		if err.Error() == "commission error" {
-			return ctx.JSON(http.StatusForbidden, "commission is incorrect")
+			return ctx.JSON(http.StatusForbidden, Response{
+				Status:  "error",
+				Message: "commission is incorrect",
+			})
 		}
-		return ctx.JSON(http.StatusInternalServerError, "Internal server error in gateway")
+		return ctx.JSON(http.StatusInternalServerError, Response{
+			Status:  "error",
+			Message: "Internal server error in gateway",
+		})
 	}
-	return ctx.JSON(http.StatusCreated, "You're gateway is successfully registered!")
+	return ctx.JSON(http.StatusCreated, Response{
+		Status:  "success",
+		Message: "You're gateway is successfully registered!",
+	})
 }
 
-func (gh *GatewayHandler) UpdateGateway(ctx echo.Context) error {
+func (h *Handler) UpdateGateway(ctx echo.Context) error {
+	h.SetUserID(ctx)
 	var req UpdateGatewayRequest
 	gatewayID, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, "gateway is not correct")
+		return ctx.JSON(http.StatusBadRequest, Response{
+			Status:  "error",
+			Message: "gateway is not correct",
+		})
 	}
 	if err = ctx.Bind(&req); err != nil {
-		return ctx.JSON(http.StatusBadRequest, "Bind Error")
+		return ctx.JSON(http.StatusBadRequest, Response{
+			Status:  "error",
+			Message: "Bind Error",
+		})
 	}
-	_, err = services.UpdateGateway(gh.DB, gh.UserID, uint(gatewayID), req.Name, req.Logo, req.BankAccountID, req.CommissionID)
+	_, err = services.UpdateGateway(h.DB, h.UserID, uint(gatewayID), req.Name, req.Logo, req.BankAccountID, req.CommissionID)
 	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, err.Error())
+		return ctx.JSON(http.StatusBadRequest, Response{
+			Status:  "error",
+			Message: err.Error(),
+		})
 	}
-	return ctx.JSON(http.StatusOK, "You're gateway is successfully updated")
-}
-
-func (gh *GatewayHandler) DeleteGateway(ctx echo.Context) error {
-	// Todo
-	return nil
+	return ctx.JSON(http.StatusOK, Response{
+		Status:  "success",
+		Message: "You're gateway is successfully updated",
+	})
 }
 
 //	func ValidateUniqueGateway(db *gorm.DB, gateway *GatewayRequest) error {
@@ -178,20 +214,21 @@ func SetGatewayResponse(gateway models.Gateway) GatewayResponse {
 		Type:          GatewayType,
 	}
 }
-func (gh *GatewayHandler) ChangeGetawayBankAccount(ctx echo.Context) error {
-	var req ChangeGatewayRequest
-	if err := ctx.Bind(&req); err != nil {
-		return ctx.JSON(http.StatusBadRequest, "Bind Error")
-	}
-	gateway, err := services.GetSpecificGateway(gh.DB, gh.UserID, req.GatewayID)
-	if err != nil {
-		return ctx.JSON(http.StatusForbidden, "gateway doesn't exist for this user")
-	}
-	_, err = services.GetSpecificBankAccount(gh.DB, gh.UserID, req.BankAccountID)
-	if err != nil {
-		return ctx.JSON(http.StatusForbidden, "bank account doesn't exist for this user")
-	}
-	gateway.BankAccountID = req.BankAccountID
-	return ctx.JSON(http.StatusForbidden, "Bank account updated successfully")
 
-}
+//func (h *Handler) ChangeGetawayBankAccount(ctx echo.Context) error {
+//	var req ChangeGatewayRequest
+//	if err := ctx.Bind(&req); err != nil {
+//		return ctx.JSON(http.StatusBadRequest, "Bind Error")
+//	}
+//	gateway, err := services.GetSpecificGateway(h.DB, h.UserID, req.GatewayID)
+//	if err != nil {
+//		return ctx.JSON(http.StatusForbidden, "gateway doesn't exist for this user")
+//	}
+//	_, err = services.GetSpecificBankAccount(h.DB, h.UserID, req.BankAccountID)
+//	if err != nil {
+//		return ctx.JSON(http.StatusForbidden, "bank account doesn't exist for this user")
+//	}
+//	gateway.BankAccountID = req.BankAccountID
+//	return ctx.JSON(http.StatusForbidden, "Bank account updated successfully")
+//
+//}
