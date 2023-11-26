@@ -17,5 +17,6 @@ type Response struct {
 }
 
 func (h *Handler) SetUserID(ctx echo.Context) {
-	h.UserID = ctx.Get(middlewares.UserIdContextField).(uint)
+	userID := ctx.Get(middlewares.UserIdContextField).(int)
+	h.UserID = uint(userID)
 }
