@@ -31,25 +31,62 @@ type TransactionResponse struct {
 	PaymentDate   string  `json:"payment_date"`
 }
 
+type FilterRequest struct {
+	StartDate *string  `json:"start_date"`
+	EndDate   *string  `json:"end_date"`
+	MinAmount *float64 `json:"min_amount"`
+	MaxAmount *float64 `json:"max_amount"`
+}
+
 func (h *Handler) ListAllTransaction(ctx echo.Context) error {
 	h.SetUserID(ctx)
-	return nil
+	transactions, err := services.GetUserTransactions(h.DB, h.UserID)
+	if err != nil {
+		return ctx.JSON(http.StatusBadRequest, "You don't have Any Transaction")
+	}
+	var TransactionResponses []PaymentTransactionResponse
+	for _, ba := range transactions {
+		TransactionResponses = append(TransactionResponses, BeginTransactionResponse(ba))
+	}
+	return ctx.JSON(http.StatusOK, TransactionResponses)
 }
 
 func (h *Handler) FindTransaction(ctx echo.Context) error {
 	h.SetUserID(ctx)
-	return nil
+	var transaction models.Transaction
+	transactionID, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		return ctx.JSON(http.StatusBadRequest, "gateway is not correct")
+	}
+	transaction, err = services.FindTransaction(h.DB, h.UserID, uint(transactionID))
+	if err != nil {
+		return ctx.JSON(http.StatusNotFound, "Gateway does not exist!")
+	}
+	return ctx.JSON(http.StatusOK, BeginTransactionResponse(transaction))
 }
 
 func (h *Handler) FilterTransaction(ctx echo.Context) error {
 	h.SetUserID(ctx)
-	//	امکان فیلتر کردن تراکنش‌ها بر حسب تاریخ و یا قیمت (بازه زمانی و یا قیمتی)
-	return nil
-}
-func (h *Handler) SearchTransaction(ctx echo.Context) error {
-	h.SetUserID(ctx)
-	//	امکان جستجو در تراکنش‌های ثبت شده بر حسب تاریخ و یا قیمت (بازه زمانی و یا قیمتی)
-	return nil
+	var filter FilterRequest
+	if err := ctx.Bind(&filter); err != nil {
+		return ctx.JSON(http.StatusBadRequest, "Bind Error")
+	}
+	filtered, err := services.FilterTransaction(h.DB, h.UserID, filter.StartDate, filter.EndDate, filter.MinAmount, filter.MaxAmount)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, err)
+	}
+	var filteredResponse []TransactionResponse
+	for _, i := range filtered {
+		filteredResponse = append(filteredResponse, TransactionResponse{
+			TrackingCode:  i.TrackingCode,
+			Status:        Getstatus(uint(i.Status)),
+			PurchaserCard: i.PurchaserCard,
+			PaymentAmount: i.PaymentAmount,
+			PhoneNumber:   i.PhoneNumber,
+			PaymentDate:   i.CreatedAt.Format("2006-01-02 15:04"),
+		})
+	}
+	return ctx.JSON(http.StatusOK, filteredResponse)
 }
 
 func (h *Handler) CreateTransaction(ctx echo.Context) error {
@@ -71,27 +108,6 @@ func (h *Handler) CreateTransaction(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, CreateTransactionResponse{TransactionID: model.ID})
 }
 
-//	func (tr *Handler) RequestPersonalTransaction(ctx echo.Context) error {
-//		// دریافت پست مقادیر زیر
-//		//	آدرس درگاه - Route - باید به آی دی تبدیل بشه
-//		//	مقدار پرداخت
-//		//	شماره موبایل
-//
-//		//	ریسپانس مقادیر زیر
-//		//	آی دی تراکنش
-//		return nil
-//	}
-//
-//	func (tr *Handler) RequestBusinessTransaction(ctx echo.Context) error {
-//		// دریافت پست مقادیر زیر
-//		//	آی دی درگاه merchantId
-//		//	مقدار پرداخت
-//		//	شماره موبایل
-//
-//		//	ریسپانس مقادیر زیر
-//		//	آی دی تراکنش
-//		return nil
-//	}
 func (h *Handler) GetTransactionForStart(ctx echo.Context) error {
 	transactionid, _ := strconv.ParseUint(ctx.Param("id"), 10, 64)
 	transaction, err := services.GetTransactionByID(h.DB, uint(transactionid))
@@ -190,28 +206,7 @@ func (h *Handler) VerifyTransaction(ctx echo.Context) error {
 }
 func SetVerifyTransactionResponse(transaction models.Transaction) TransactionResponse {
 	var status string
-	if transaction.Status == models.NotPaid {
-		status = "NotPaid"
-	} else if transaction.Status == models.NotSuccessfully {
-		status = "NotSuccessfully"
-	} else if transaction.Status == models.IssueOccurred {
-		status = "IssueOccurred"
-	} else if transaction.Status == models.Blocked {
-		status = "Blocked"
-	} else if transaction.Status == models.Refund {
-		status = "Refund"
-	} else if transaction.Status == models.Cancelled {
-		status = "Cancelled"
-	} else if transaction.Status == models.ReturnToGateway {
-		status = "ReturnToGateway"
-	} else if transaction.Status == models.AwaitingConfirmation {
-		status = "AwaitingConfirmation"
-	} else if transaction.Status == models.Confirmed {
-		status = "Confirmed"
-	} else if transaction.Status == models.Paid {
-		status = "Paid"
-	}
-
+	status = Getstatus(uint(transaction.Status))
 	return TransactionResponse{
 		TrackingCode:  transaction.TrackingCode,
 		Status:        status,
@@ -220,4 +215,29 @@ func SetVerifyTransactionResponse(transaction models.Transaction) TransactionRes
 		PhoneNumber:   transaction.PhoneNumber,
 		PaymentDate:   transaction.CreatedAt.Format("2006-01-02 15:04"),
 	}
+}
+func Getstatus(statusID uint) string {
+	var status string
+	if statusID == models.NotPaid {
+		status = "NotPaid"
+	} else if statusID == models.NotSuccessfully {
+		status = "NotSuccessfully"
+	} else if statusID == models.IssueOccurred {
+		status = "IssueOccurred"
+	} else if statusID == models.Blocked {
+		status = "Blocked"
+	} else if statusID == models.Refund {
+		status = "Refund"
+	} else if statusID == models.Cancelled {
+		status = "Cancelled"
+	} else if statusID == models.ReturnToGateway {
+		status = "ReturnToGateway"
+	} else if statusID == models.AwaitingConfirmation {
+		status = "AwaitingConfirmation"
+	} else if statusID == models.Confirmed {
+		status = "Confirmed"
+	} else if statusID == models.Paid {
+		status = "Paid"
+	}
+	return status
 }
