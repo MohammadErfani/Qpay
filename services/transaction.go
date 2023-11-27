@@ -135,10 +135,10 @@ func FilterTransaction(db *gorm.DB, UserID uint, StartDate *time.Time, EndDate *
 		query = query.Where("created_at <= ?", EndDate)
 	}
 	if MinAmount != nil {
-		query = query.Where("amount >= ?", MinAmount)
+		query = query.Where("payment_amount >= ?", MinAmount)
 	}
 	if MaxAmount != nil {
-		query = query.Where("amount <= ?", MaxAmount)
+		query = query.Where("payment_amount <= ?", MaxAmount)
 	}
 	err = query.Find(&transactions).Error
 	if err != nil {
