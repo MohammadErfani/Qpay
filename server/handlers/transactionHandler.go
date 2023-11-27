@@ -122,6 +122,8 @@ type PaymentTransactionRequest struct {
 	PurchaserCard       string `json:"purchaser_card"`
 	CardMonth           int    `json:"card_month"`
 	CardYear            int    `json:"card_year"`
+	Password            int    `json:"password"`
+	CVV2                int    `json:"cvv2"`
 	TransactionID       uint   `json:"transaction_id"`
 	PaymentConfirmation bool   `json:"payment_confirmation"` //	دستور پرداخت و کم کردن موجودی (کنسل تراکنش - پرداخت)
 }
@@ -163,7 +165,7 @@ func (h *Handler) BeginTransaction(ctx echo.Context) error {
 	}
 
 	// اینجا باید به ماک متصل بشم و یه خروجی ازش بگیرم که مثلا از کارت مشتری پول کم شده
-	transaction, err := services.PaymentTransaction(h.DB, req.TransactionID, req.CardYear, req.CardMonth, req.PurchaserCard)
+	transaction, err := services.PaymentTransaction(h.DB, req.TransactionID, req.CardYear, req.CardMonth, req.PurchaserCard, req.CVV2, req.Password)
 	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, err.Error())
 	}
@@ -178,6 +180,8 @@ func ValidateTransaction(transaction *PaymentTransactionRequest) error {
 	requiredFieldsInt := map[string]int{
 		"card_month": transaction.CardMonth,
 		"card_year":  transaction.CardYear,
+		"password":   transaction.Password,
+		"cvv2":       transaction.CVV2,
 	}
 	requiredFieldsUint := map[string]uint{
 		"transaction_id": transaction.TransactionID,

@@ -58,24 +58,26 @@ func CancelledTransaction(db *gorm.DB, TrackingID uint) error {
 	return nil
 }
 
-func PaymentTransaction(db *gorm.DB, TransactionID uint, CardYear int, CardMonth int, PurchaserCard string) (models.Transaction, error) {
+func PaymentTransaction(db *gorm.DB, TransactionID uint, CardYear, CardMonth int, PurchaserCard string, cvv2, password int) (models.Transaction, error) {
 	var transaction models.Transaction
 	var gateway models.Gateway
 	err := db.Where("ID=?", TransactionID).First(&transaction).Error
-	if err != nil {
+	if err != nil || transaction.Status != models.NotPaid {
 		return models.Transaction{}, errors.New("transaction Not found")
 	}
 	if err = db.Preload("Commission").Preload("BankAccount").First(&gateway, fmt.Sprintf("%s=?", "ID"), transaction.GatewayID).Error; err != nil {
 		return models.Transaction{}, errors.New("gateway not found")
 	}
 	// for checking time
-	compare := transaction.CreatedAt.Add(10 * time.Minute)
+	compare := transaction.CreatedAt.Add(15 * time.Second)
 	if time.Now().After(compare) {
-		fmt.Println("kheie gozasht ke")
+		transaction.Status = models.NotSuccessfully
+		db.Save(&transaction)
+		return models.Transaction{}, errors.New("time out")
 		// todo change status of transaction and return error
 	}
 	//اینجا متصل میشیم به ماکبانک مرکزی و تراکنش رو انجام میدیم اگه ارور نداشت
-	TrackingCode, err := utils.Transaction(transaction.PaymentAmount, CardYear, CardMonth, transaction.PhoneNumber, PurchaserCard)
+	TrackingCode, err := utils.Transaction(transaction.PaymentAmount, CardYear, CardMonth, PurchaserCard, cvv2, password)
 	if err != nil {
 		return models.Transaction{}, err
 	}
