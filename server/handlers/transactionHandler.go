@@ -44,10 +44,9 @@ type FilterRequest struct {
 }
 
 func (tr *TransactionHandler) ListAllTransaction(ctx echo.Context) error {
-	gatewayID, err := strconv.Atoi(ctx.Param("gatewayID"))
-	transactions, err := services.GetUserTransactions(tr.DB, tr.UserID, uint(gatewayID))
+	transactions, err := services.GetUserTransactions(tr.DB, tr.UserID)
 	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, "You didn't Any Transaction")
+		return ctx.JSON(http.StatusBadRequest, "You don't have Any Transaction")
 	}
 	var TransactionResponses []PaymentTransactionResponse
 	for _, ba := range transactions {

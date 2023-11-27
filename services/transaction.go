@@ -97,13 +97,13 @@ func PaymentTransaction(db *gorm.DB, TransactionID uint, CardYear int, CardMonth
 	return transaction, nil
 }
 
-func GetUserTransactions(db *gorm.DB, userID, gatewayID uint) ([]models.Transaction, error) {
+func GetUserTransactions(db *gorm.DB, userID uint) ([]models.Transaction, error) {
 
 	var transactions []models.Transaction
 
 	err := db.Joins("JOIN gateways ON transactions.gateways_id = gateways.id").
-		Where("gateways.user_id = ? AND gateways.id = ?", userID, gatewayID).
-		Preload("User").
+		Where("gateways.user_id = ? ", userID).
+		//Preload("User").
 		Find(&transactions).Error
 
 	if err != nil {
@@ -118,9 +118,8 @@ func GetUserTransactions(db *gorm.DB, userID, gatewayID uint) ([]models.Transact
 }
 func FindTransaction(db *gorm.DB, userID, transactionID uint) (models.Transaction, error) {
 	var transaction models.Transaction
-	err := db.Joins("JOIN users ON transactions.user_id = users.id").
-		Where("transactions.id = ? AND users.id = ?", transactionID, userID).
-		Preload("User").
+	err := db.Joins("JOIN gateways ON transactions.gateways_id = gateways.id").
+		Where("transactions.id = ? AND gateways.user_id = ?", transactionID, userID).
 		First(&transaction).Error
 
 	if err != nil {
@@ -144,14 +143,14 @@ func FilterTransaction(db *gorm.DB, UserID uint, StartDate *string, EndDate *str
 		if err != nil {
 			return nil, errors.New("start date is not in correct format")
 		}
-		query = query.Where("created_at >= ?", parsedStartTime)
+		query = query.Where("transactions.created_at >= ?", parsedStartTime)
 	}
 	if EndDate != nil {
 		parsedEndTime, err := time.Parse("2006-01-02", *EndDate)
 		if err != nil {
 			return nil, errors.New("start date is not in correct format")
 		}
-		query = query.Where("created_at <= ?", parsedEndTime)
+		query = query.Where("transactions.created_at <= ?", parsedEndTime)
 	}
 	if MinAmount != nil {
 		query = query.Where("payment_amount >= ?", MinAmount)
