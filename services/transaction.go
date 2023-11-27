@@ -129,7 +129,7 @@ func FindTransaction(db *gorm.DB, userID, transactionID uint) (models.Transactio
 
 	return transaction, nil
 }
-func FilterTransaction(db *gorm.DB, UserID uint, StartDate *time.Time, EndDate *time.Time, MinAmount *float64, MaxAmount *float64) ([]models.Transaction, error) {
+func FilterTransaction(db *gorm.DB, UserID uint, StartDate *string, EndDate *string, MinAmount *float64, MaxAmount *float64) ([]models.Transaction, error) {
 	var transactions []models.Transaction
 	_, err := GetTransactionsByUserID(db, UserID)
 	if err != nil {
@@ -140,10 +140,18 @@ func FilterTransaction(db *gorm.DB, UserID uint, StartDate *time.Time, EndDate *
 		Where("gateways.user_id = ?", UserID).
 		Preload("Gateway.User")
 	if StartDate != nil {
-		query = query.Where("created_at >= ?", StartDate)
+		parsedStartTime, err := time.Parse("2006-01-02", *StartDate)
+		if err != nil {
+			return nil, errors.New("start date is not in correct format")
+		}
+		query = query.Where("created_at >= ?", parsedStartTime)
 	}
 	if EndDate != nil {
-		query = query.Where("created_at <= ?", EndDate)
+		parsedEndTime, err := time.Parse("2006-01-02", *EndDate)
+		if err != nil {
+			return nil, errors.New("start date is not in correct format")
+		}
+		query = query.Where("created_at <= ?", parsedEndTime)
 	}
 	if MinAmount != nil {
 		query = query.Where("payment_amount >= ?", MinAmount)

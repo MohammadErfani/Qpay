@@ -9,7 +9,6 @@ import (
 	"gorm.io/gorm"
 	"net/http"
 	"strconv"
-	"time"
 )
 
 type CreateTransactionRequest struct {
@@ -38,10 +37,10 @@ type TransactionResponse struct {
 }
 
 type FilterRequest struct {
-	StartDate *time.Time `json:"start_date"`
-	EndDate   *time.Time `json:"end_date"`
-	MinAmount *float64   `json:"min_amount"`
-	MaxAmount *float64   `json:"max_amount"`
+	StartDate *string  `json:"start_date"`
+	EndDate   *string  `json:"end_date"`
+	MinAmount *float64 `json:"min_amount"`
+	MaxAmount *float64 `json:"max_amount"`
 }
 
 func (tr *TransactionHandler) ListAllTransaction(ctx echo.Context) error {
@@ -79,7 +78,18 @@ func (tr *TransactionHandler) FilterTransaction(ctx echo.Context) error {
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, err)
 	}
-	return ctx.JSON(http.StatusOK, filtered)
+	var filteredResponse []TransactionResponse
+	for _, i := range filtered {
+		filteredResponse = append(filteredResponse, TransactionResponse{
+			TrackingCode:  i.TrackingCode,
+			Status:        Getstatus(uint(i.Status)),
+			PurchaserCard: i.PurchaserCard,
+			PaymentAmount: i.PaymentAmount,
+			PhoneNumber:   i.PhoneNumber,
+			PaymentDate:   i.CreatedAt.Format("2006-01-02 15:04"),
+		})
+	}
+	return ctx.JSON(http.StatusOK, filteredResponse)
 }
 func (tr *TransactionHandler) SearchTransaction(ctx echo.Context) error {
 	//	امکان جستجو در تراکنش‌های ثبت شده بر حسب تاریخ و یا قیمت (بازه زمانی و یا قیمتی)
@@ -225,28 +235,7 @@ func (tr *TransactionHandler) VerifyTransaction(ctx echo.Context) error {
 }
 func SetVerifyTransactionResponse(transaction models.Transaction) TransactionResponse {
 	var status string
-	if transaction.Status == models.NotPaid {
-		status = "NotPaid"
-	} else if transaction.Status == models.NotSuccessfully {
-		status = "NotSuccessfully"
-	} else if transaction.Status == models.IssueOccurred {
-		status = "IssueOccurred"
-	} else if transaction.Status == models.Blocked {
-		status = "Blocked"
-	} else if transaction.Status == models.Refund {
-		status = "Refund"
-	} else if transaction.Status == models.Cancelled {
-		status = "Cancelled"
-	} else if transaction.Status == models.ReturnToGateway {
-		status = "ReturnToGateway"
-	} else if transaction.Status == models.AwaitingConfirmation {
-		status = "AwaitingConfirmation"
-	} else if transaction.Status == models.Confirmed {
-		status = "Confirmed"
-	} else if transaction.Status == models.Paid {
-		status = "Paid"
-	}
-
+	status = Getstatus(uint(transaction.Status))
 	return TransactionResponse{
 		TrackingCode:  transaction.TrackingCode,
 		Status:        status,
@@ -255,4 +244,29 @@ func SetVerifyTransactionResponse(transaction models.Transaction) TransactionRes
 		PhoneNumber:   transaction.PhoneNumber,
 		PaymentDate:   transaction.CreatedAt.Format("2006-01-02 15:04"),
 	}
+}
+func Getstatus(statusID uint) string {
+	var status string
+	if statusID == models.NotPaid {
+		status = "NotPaid"
+	} else if statusID == models.NotSuccessfully {
+		status = "NotSuccessfully"
+	} else if statusID == models.IssueOccurred {
+		status = "IssueOccurred"
+	} else if statusID == models.Blocked {
+		status = "Blocked"
+	} else if statusID == models.Refund {
+		status = "Refund"
+	} else if statusID == models.Cancelled {
+		status = "Cancelled"
+	} else if statusID == models.ReturnToGateway {
+		status = "ReturnToGateway"
+	} else if statusID == models.AwaitingConfirmation {
+		status = "AwaitingConfirmation"
+	} else if statusID == models.Confirmed {
+		status = "Confirmed"
+	} else if statusID == models.Paid {
+		status = "Paid"
+	}
+	return status
 }
