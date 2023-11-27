@@ -100,22 +100,33 @@ func PaymentTransaction(db *gorm.DB, TransactionID uint, CardYear int, CardMonth
 func GetUserTransactions(db *gorm.DB, userID, gatewayID uint) ([]models.Transaction, error) {
 
 	var transactions []models.Transaction
-	err := db.Where("user_id=? AND gatewayID=?", userID, gatewayID).Preload("User").Find(&transactions).Error
+
+	err := db.Joins("JOIN gateways ON transactions.gateways_id = gateways.id").
+		Where("gateways.user_id = ? AND gateways.id = ?", userID, gatewayID).
+		Preload("User").
+		Find(&transactions).Error
+
 	if err != nil {
 		return transactions, err
 	}
 
 	if len(transactions) == 0 {
-		return []models.Transaction{}, errors.New("this user doesn't have any transaction")
+		return []models.Transaction{}, errors.New("no transactions found for the specified user and gateway")
 	}
+
 	return transactions, nil
 }
 func FindTransaction(db *gorm.DB, userID, transactionID uint) (models.Transaction, error) {
 	var transaction models.Transaction
-	err := db.Where("id=? AND UserID=?", transactionID, userID).Preload("User").First(&transaction).Error
+	err := db.Joins("JOIN users ON transactions.user_id = users.id").
+		Where("transactions.id = ? AND users.id = ?", transactionID, userID).
+		Preload("User").
+		First(&transaction).Error
+
 	if err != nil {
-		return models.Transaction{}, errors.New("transaction Not found")
+		return models.Transaction{}, errors.New("transaction not found")
 	}
+
 	return transaction, nil
 }
 func FilterTransaction(db *gorm.DB, UserID uint, StartDate *time.Time, EndDate *time.Time, MinAmount *float64, MaxAmount *float64) ([]models.Transaction, error) {
