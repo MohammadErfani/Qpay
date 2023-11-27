@@ -1,9 +1,7 @@
 package utils
 
 import (
-	"Qpay/models"
 	"errors"
-	"fmt"
 )
 
 type PurchaserCard struct {
@@ -35,7 +33,7 @@ func Transaction(paymentAmount float64, cardYear, cardMonth int, cardNumber stri
 	if paymentAmount < 10000 || paymentAmount > 1200000000 {
 		return "", errors.New("this payment is not correct")
 	}
-	return GenerateTrackingCode(models.Paid), nil
+	return GenerateRandomString(10), nil
 }
 func PurchaserBankAccount(PurchaserCard string) string {
 	switch PurchaserCard {
@@ -70,13 +68,6 @@ func PurchaserBankAccount(PurchaserCard string) string {
 //	}
 //	return nil
 //}
-
-func GenerateTrackingCode(Status uint8) string {
-	return fmt.Sprintf("%v%v%v",
-		GenerateRandomString(4),
-		Status,
-		GenerateRandomString(5))
-}
 
 func CheckCardCredential(card PurchaserCard) (string, error) {
 	cards := []PurchaserCard{

@@ -69,7 +69,7 @@ func PaymentTransaction(db *gorm.DB, TransactionID uint, CardYear, CardMonth int
 		return models.Transaction{}, errors.New("gateway not found")
 	}
 	// for checking time
-	compare := transaction.CreatedAt.Add(15 * time.Second)
+	compare := transaction.CreatedAt.Add(15 * time.Minute)
 	if time.Now().After(compare) {
 		transaction.Status = models.NotSuccessfully
 		db.Save(&transaction)

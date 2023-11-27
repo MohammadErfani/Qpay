@@ -13,7 +13,7 @@ func PaymentGroup(ctx *echo.Group) {
 	// یکی کردن پرسنال و بیزینس
 	ctx.POST("/transaction/create/:route", h.CreateTransaction)
 	// get : دریافت اطلاعات تراکنش
-	ctx.GET("/transaction/StartPay/:id", h.GetTransactionForStart)
-	ctx.POST("/transaction/StartPay", h.BeginTransaction)
-	ctx.POST("/transaction/PaymentVerification", h.VerifyTransaction)
+	ctx.GET("/transaction/start/:id", h.GetTransactionForStart)
+	ctx.POST("/transaction/start", h.BeginTransaction)
+	ctx.POST("/transaction/verify", h.VerifyTransaction)
 }

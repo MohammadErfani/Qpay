@@ -79,7 +79,7 @@ func (h *Handler) FilterTransaction(ctx echo.Context) error {
 	for _, i := range filtered {
 		filteredResponse = append(filteredResponse, TransactionResponse{
 			TrackingCode:  i.TrackingCode,
-			Status:        Getstatus(uint(i.Status)),
+			Status:        GetStatus(uint(i.Status)),
 			PurchaserCard: i.PurchaserCard,
 			PaymentAmount: i.PaymentAmount,
 			PhoneNumber:   i.PhoneNumber,
@@ -199,10 +199,17 @@ func ValidateTransaction(transaction *PaymentTransactionRequest) error {
 	return nil
 }
 
+type VerifyTransactionRequest struct {
+	TrackingCode string `json:"tracking_code"`
+}
+
 func (h *Handler) VerifyTransaction(ctx echo.Context) error {
 	var transaction models.Transaction
-	trackingCode := ctx.Param("tracking_code")
-	transaction, err := services.GetSpecificTransaction(h.DB, trackingCode)
+	var req VerifyTransactionRequest
+	if err := ctx.Bind(&req); err != nil {
+		return ctx.JSON(http.StatusBadRequest, "bind error")
+	}
+	transaction, err := services.GetSpecificTransaction(h.DB, req.TrackingCode)
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, "Transaction does not exist!")
 	}
@@ -210,7 +217,7 @@ func (h *Handler) VerifyTransaction(ctx echo.Context) error {
 }
 func SetVerifyTransactionResponse(transaction models.Transaction) TransactionResponse {
 	var status string
-	status = Getstatus(uint(transaction.Status))
+	status = GetStatus(uint(transaction.Status))
 	return TransactionResponse{
 		TrackingCode:  transaction.TrackingCode,
 		Status:        status,
@@ -220,7 +227,7 @@ func SetVerifyTransactionResponse(transaction models.Transaction) TransactionRes
 		PaymentDate:   transaction.CreatedAt.Format("2006-01-02 15:04"),
 	}
 }
-func Getstatus(statusID uint) string {
+func GetStatus(statusID uint) string {
 	var status string
 	if statusID == models.NotPaid {
 		status = "NotPaid"
