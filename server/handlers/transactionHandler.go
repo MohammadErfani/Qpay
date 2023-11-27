@@ -9,6 +9,7 @@ import (
 	"gorm.io/gorm"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 type CreateTransactionRequest struct {
@@ -34,6 +35,13 @@ type TransactionResponse struct {
 	PaymentAmount float64 `json:"payment_amount"`
 	PhoneNumber   string  `json:"phone_number"`
 	PaymentDate   string  `json:"payment_date"`
+}
+
+type FilterRequest struct {
+	StartDate *time.Time `json:"start_date"`
+	EndDate   *time.Time `json:"end_date"`
+	MinAmount *float64   `json:"min_amount"`
+	MaxAmount *float64   `json:"max_amount"`
 }
 
 func (tr *TransactionHandler) ListAllTransaction(ctx echo.Context) error {
@@ -63,8 +71,15 @@ func (tr *TransactionHandler) FindTransaction(ctx echo.Context) error {
 }
 
 func (tr *TransactionHandler) FilterTransaction(ctx echo.Context) error {
-	//	امکان فیلتر کردن تراکنش‌ها بر حسب تاریخ و یا قیمت (بازه زمانی و یا قیمتی)
-	return nil
+	var filter FilterRequest
+	if err := ctx.Bind(&filter); err != nil {
+		return ctx.JSON(http.StatusBadRequest, "Bind Error")
+	}
+	filtered, err := services.FilterTransaction(tr.DB, tr.UserID, filter.StartDate, filter.EndDate, filter.MinAmount, filter.MaxAmount)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, err)
+	}
+	return ctx.JSON(http.StatusOK, filtered)
 }
 func (tr *TransactionHandler) SearchTransaction(ctx echo.Context) error {
 	//	امکان جستجو در تراکنش‌های ثبت شده بر حسب تاریخ و یا قیمت (بازه زمانی و یا قیمتی)

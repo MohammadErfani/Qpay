@@ -118,3 +118,44 @@ func FindTransaction(db *gorm.DB, userID, transactionID uint) (models.Transactio
 	}
 	return transaction, nil
 }
+func FilterTransaction(db *gorm.DB, UserID uint, StartDate *time.Time, EndDate *time.Time, MinAmount *float64, MaxAmount *float64) ([]models.Transaction, error) {
+	var transactions []models.Transaction
+	_, err := GetTransactionsByUserID(db, UserID)
+	if err != nil {
+		return nil, errors.New("this user doesn't have any transaction")
+	}
+
+	query := db.Joins("JOIN gateways ON transactions.gateways_id = gateways.id").
+		Where("gateways.user_id = ?", UserID).
+		Preload("Gateway.User")
+	if StartDate != nil {
+		query = query.Where("created_at >= ?", StartDate)
+	}
+	if EndDate != nil {
+		query = query.Where("created_at <= ?", EndDate)
+	}
+	if MinAmount != nil {
+		query = query.Where("amount >= ?", MinAmount)
+	}
+	if MaxAmount != nil {
+		query = query.Where("amount <= ?", MaxAmount)
+	}
+	err = query.Find(&transactions).Error
+	if err != nil {
+		return nil, err
+	}
+	return transactions, nil
+}
+func GetTransactionsByUserID(db *gorm.DB, userID uint) ([]models.Transaction, error) {
+	var transactions []models.Transaction
+
+	query := db.Joins("JOIN gateways ON transactions.gateways_id = gateways.id").
+		Where("gateways.user_id = ?", userID).
+		Preload("Gateway.User")
+
+	if err := query.Find(&transactions).Error; err != nil {
+		return nil, err
+	}
+
+	return transactions, nil
+}
