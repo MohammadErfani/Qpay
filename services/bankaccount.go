@@ -111,10 +111,21 @@ func CreateBankAccount(db *gorm.DB, userID uint, sheba string) (*models.BankAcco
 
 // should tested
 func DeleteBankAccount(db *gorm.DB, userID, bankAccountID uint) error {
-	if _, err := GetSpecificBankAccount(db, userID, bankAccountID); err != nil {
-		return err
+	var bankAccount models.BankAccount
+	err := db.Where("id = ? AND user_id = ?", bankAccountID, userID).Preload("Gateways").First(&bankAccount).Error
+	if err != nil {
+		return errors.New("bank account not found")
 	}
-	result := db.Delete(&models.BankAccount{}, bankAccountID)
+	for _, g := range bankAccount.Gateways {
+		g.Status = models.StatusGatewayInActive
+		db.Save(&g)
+	}
+	//bankAccount, err := GetSpecificBankAccount(db, userID, bankAccountID)
+	//if err != nil {
+	//	return err
+	//}
+
+	result := db.Delete(&bankAccount)
 	if result.RowsAffected == 0 {
 		return errors.New("not found")
 	}

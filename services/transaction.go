@@ -23,6 +23,9 @@ func CreateTransaction(db *gorm.DB, gatewayID uint, amount float64, phoneNumber 
 	if err != nil {
 		return models.Transaction{}, err
 	}
+	if gateway.Status != models.StatusGatewayActive {
+		return models.Transaction{}, errors.New("transaction is inactive")
+	}
 	transaction := models.Transaction{
 		GatewayID:        gatewayID,
 		PaymentAmount:    amount,
@@ -67,6 +70,9 @@ func PaymentTransaction(db *gorm.DB, TransactionID uint, CardYear, CardMonth int
 	}
 	if err = db.Preload("Commission").Preload("BankAccount").First(&gateway, fmt.Sprintf("%s=?", "ID"), transaction.GatewayID).Error; err != nil {
 		return models.Transaction{}, errors.New("gateway not found")
+	}
+	if gateway.Status != models.StatusGatewayActive {
+		return models.Transaction{}, errors.New("gateway is inactive")
 	}
 	// for checking time
 	compare := transaction.CreatedAt.Add(15 * time.Minute)
