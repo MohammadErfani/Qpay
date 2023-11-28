@@ -19,9 +19,21 @@ type RegisterRequest struct {
 	PhoneNumber string `json:"phone_number" binding:"required"`
 	Identity    string `json:"identity" binding:"required"`
 	Address     string `json:"address" binding:"required"`
-	IsCompany   bool   `json:"is_company" binding:"required"` // 0 , 1 , 2
+	IsCompany   bool   `json:"is_company" binding:"required"`
 }
 
+// @Summary Create a new user
+// @Description Create a new user with the provided information.
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param registerRequest body RegisterRequest true "User registration details"
+// @Success 201 {object} Response "{"status": "success", "message": "User created successfully"}"
+// @Failure 400 {object} Response "{"status": "error", "message": "Bind Error"}"
+// @Failure 403 {object} Response "{"status": "error", "message": "Validation Error"}"
+// @Failure 409 {object} Response "{"status": "error", "message": "Conflict - User already exists"}"
+// @Failure 500 {object} Response "{"status": "error", "message": "Internal server error in creating user"}"
+// @Router /register [post]
 func (h *Handler) CreateUser(ctx echo.Context) error {
 	var req RegisterRequest
 	if err := ctx.Bind(&req); err != nil {

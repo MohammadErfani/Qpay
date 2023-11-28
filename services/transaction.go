@@ -23,6 +23,9 @@ func CreateTransaction(db *gorm.DB, gatewayID uint, amount float64, phoneNumber 
 	if err != nil {
 		return models.Transaction{}, err
 	}
+	if gateway.Status != models.StatusGatewayActive {
+		return models.Transaction{}, errors.New("transaction is inactive")
+	}
 	transaction := models.Transaction{
 		GatewayID:        gatewayID,
 		PaymentAmount:    amount,
@@ -58,24 +61,29 @@ func CancelledTransaction(db *gorm.DB, TrackingID uint) error {
 	return nil
 }
 
-func PaymentTransaction(db *gorm.DB, TransactionID uint, CardYear int, CardMonth int, PurchaserCard string) (models.Transaction, error) {
+func PaymentTransaction(db *gorm.DB, TransactionID uint, CardYear, CardMonth int, PurchaserCard string, cvv2, password int) (models.Transaction, error) {
 	var transaction models.Transaction
 	var gateway models.Gateway
 	err := db.Where("ID=?", TransactionID).First(&transaction).Error
-	if err != nil {
+	if err != nil || transaction.Status != models.NotPaid {
 		return models.Transaction{}, errors.New("transaction Not found")
 	}
 	if err = db.Preload("Commission").Preload("BankAccount").First(&gateway, fmt.Sprintf("%s=?", "ID"), transaction.GatewayID).Error; err != nil {
 		return models.Transaction{}, errors.New("gateway not found")
 	}
+	if gateway.Status != models.StatusGatewayActive {
+		return models.Transaction{}, errors.New("gateway is inactive")
+	}
 	// for checking time
-	compare := transaction.CreatedAt.Add(10 * time.Minute)
+	compare := transaction.CreatedAt.Add(15 * time.Minute)
 	if time.Now().After(compare) {
-		fmt.Println("kheie gozasht ke")
+		transaction.Status = models.NotSuccessfully
+		db.Save(&transaction)
+		return models.Transaction{}, errors.New("time out")
 		// todo change status of transaction and return error
 	}
 	//اینجا متصل میشیم به ماکبانک مرکزی و تراکنش رو انجام میدیم اگه ارور نداشت
-	TrackingCode, err := utils.Transaction(transaction.PaymentAmount, CardYear, CardMonth, transaction.PhoneNumber, PurchaserCard)
+	TrackingCode, err := utils.Transaction(transaction.PaymentAmount, CardYear, CardMonth, PurchaserCard, cvv2, password)
 	if err != nil {
 		return models.Transaction{}, err
 	}
@@ -111,4 +119,85 @@ func GetTransaction(db *gorm.DB, fieldName, fieldValue string) (*models.Transact
 		return nil, errors.New("transaction not found")
 	}
 	return &transaction, nil
+}
+
+func GetUserTransactions(db *gorm.DB, userID uint) ([]models.Transaction, error) {
+
+	var transactions []models.Transaction
+
+	err := db.Joins("JOIN gateways ON transactions.gateways_id = gateways.id").
+		Where("gateways.user_id = ? ", userID).
+		//Preload("User").
+		Find(&transactions).Error
+
+	if err != nil {
+		return transactions, err
+	}
+
+	if len(transactions) == 0 {
+		return []models.Transaction{}, errors.New("no transactions found for the specified user and gateway")
+	}
+
+	return transactions, nil
+}
+func FindTransaction(db *gorm.DB, userID, transactionID uint) (models.Transaction, error) {
+	var transaction models.Transaction
+	err := db.Joins("JOIN gateways ON transactions.gateways_id = gateways.id").
+		Where("transactions.id = ? AND gateways.user_id = ?", transactionID, userID).
+		First(&transaction).Error
+
+	if err != nil {
+		return models.Transaction{}, errors.New("transaction not found")
+	}
+
+	return transaction, nil
+}
+func FilterTransaction(db *gorm.DB, UserID uint, StartDate *string, EndDate *string, MinAmount *float64, MaxAmount *float64) ([]models.Transaction, error) {
+	var transactions []models.Transaction
+	_, err := GetTransactionsByUserID(db, UserID)
+	if err != nil {
+		return nil, errors.New("this user doesn't have any transaction")
+	}
+
+	query := db.Joins("JOIN gateways ON transactions.gateways_id = gateways.id").
+		Where("gateways.user_id = ?", UserID).
+		Preload("Gateway.User")
+	if StartDate != nil {
+		parsedStartTime, err := time.Parse("2006-01-02", *StartDate)
+		if err != nil {
+			return nil, errors.New("start date is not in correct format")
+		}
+		query = query.Where("transactions.created_at >= ?", parsedStartTime)
+	}
+	if EndDate != nil {
+		parsedEndTime, err := time.Parse("2006-01-02", *EndDate)
+		if err != nil {
+			return nil, errors.New("start date is not in correct format")
+		}
+		query = query.Where("transactions.created_at <= ?", parsedEndTime)
+	}
+	if MinAmount != nil {
+		query = query.Where("payment_amount >= ?", MinAmount)
+	}
+	if MaxAmount != nil {
+		query = query.Where("payment_amount <= ?", MaxAmount)
+	}
+	err = query.Find(&transactions).Error
+	if err != nil {
+		return nil, err
+	}
+	return transactions, nil
+}
+func GetTransactionsByUserID(db *gorm.DB, userID uint) ([]models.Transaction, error) {
+	var transactions []models.Transaction
+
+	query := db.Joins("JOIN gateways ON transactions.gateways_id = gateways.id").
+		Where("gateways.user_id = ?", userID).
+		Preload("Gateway.User")
+
+	if err := query.Find(&transactions).Error; err != nil {
+		return nil, err
+	}
+
+	return transactions, nil
 }

@@ -23,6 +23,16 @@ type BankAccountResponse struct {
 	Status       string `json:"status"`
 }
 
+// ListAllBankAccounts godoc
+// @Summary List all bank accounts for the authenticated user
+// @Description Retrieve a list of all bank accounts associated with the authenticated user.
+// @Tags bankaccounts
+// @Accept json
+// @Produce json
+// @Success 200 {array} BankAccountResponse "List of bank accounts"
+// @Failure 400 {object} Response "{"status": "error", "message": "You didn't add any bank account!"}"
+// @Security ApiKeyAuth
+// @Router /bankaccount [get]
 func (h *Handler) ListAllBankAccounts(ctx echo.Context) error {
 	h.SetUserID(ctx)
 	bankAccounts, err := services.GetUserBankAccounts(h.DB, h.UserID)
@@ -39,6 +49,19 @@ func (h *Handler) ListAllBankAccounts(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, bankAccountResponses)
 
 }
+
+// FindBankAccount godoc
+// @Summary Find a bank account by ID for the authenticated user
+// @Description Retrieve details of a specific bank account associated with the authenticated user.
+// @Tags bankaccounts
+// @Accept json
+// @Produce json
+// @Param id path int true "Bank Account ID"
+// @Success 200 {object} BankAccountResponse "Bank account details"
+// @Failure 400 {object} Response "{"status": "error", "message": "Bank account is not correct"}"
+// @Failure 404 {object} Response "{"status": "error", "message": "Bank account does not exist!"}"
+// @Security ApiKeyAuth
+// @Router /bankaccount/{id} [get]
 func (h *Handler) FindBankAccount(ctx echo.Context) error {
 	h.SetUserID(ctx)
 	var bankAccount models.BankAccount
@@ -60,6 +83,21 @@ func (h *Handler) FindBankAccount(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, bankAccountResponse)
 }
 
+// RegisterNewBankAccount godoc
+// @Summary Register a new bank account for the authenticated user
+// @Description Register a new bank account for the authenticated user with the provided SHEBA number.
+// @Tags bankaccounts
+// @Accept json
+// @Produce json
+// @Param bankAccountRequest body BankAccountRequest true "Bank account registration details"
+// @Success 201 {object} Response "{"status": "success", "message": "You're bank account is successfully registered!"}"
+// @Failure 400 {object} Response "{"status": "error", "message": "Bind Error"}"
+// @Failure 400 {object} Response "{"status": "error", "message": "Invalid SHEBA format"}"
+// @Failure 409 {object} Response "{"status": "error", "message": "SHEBA already exists"}"
+// @Failure 403 {object} Response "{"status": "error", "message": "SHEBA doesn't match your credentials"}"
+// @Failure 500 {object} Response "{"status": "error", "message": "Internal server error in create bank account"}"
+// @Security ApiKeyAuth
+// @Router /bankaccount [post]
 func (h *Handler) RegisterNewBankAccount(ctx echo.Context) error {
 	h.SetUserID(ctx)
 	var req BankAccountRequest
@@ -101,6 +139,18 @@ func (h *Handler) RegisterNewBankAccount(ctx echo.Context) error {
 	})
 }
 
+// DeleteBankAccount godoc
+// @Summary Delete a bank account by ID for the authenticated user
+// @Description Delete a specific bank account associated with the authenticated user.
+// @Tags bankaccounts
+// @Accept json
+// @Produce json
+// @Param id path int true "Bank Account ID"
+// @Success 200 {object} Response "{"status": "success", "message": "You're bank account is successfully deleted!"}"
+// @Failure 400 {object} Response "{"status": "error", "message": "Bank account is not correct"}"
+// @Failure 404 {object} Response "{"status": "error", "message": "Bank account does not exist!"}"
+// @Security ApiKeyAuth
+// @Router /bankaccount/{id} [delete]
 func (h *Handler) DeleteBankAccount(ctx echo.Context) error {
 	h.SetUserID(ctx)
 	bankAccountID, err := strconv.Atoi(ctx.Param("id"))
