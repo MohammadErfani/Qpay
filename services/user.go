@@ -37,3 +37,12 @@ func GetUserByEmail(db *gorm.DB, email string) (*models.User, error) {
 	}
 	return &dbUser, nil
 }
+
+func ListAllUser(db *gorm.DB) ([]models.User, error) {
+	var users []models.User
+	err := db.Find(&users).Error
+	if err != nil {
+		return users, errors.New("error getting users")
+	}
+	return users, nil
+}

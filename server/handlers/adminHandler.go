@@ -95,13 +95,24 @@ func (h *Handler) AdminGetCommission(ctx echo.Context) error {
 // user handlers
 
 func (h *Handler) AdminListUsers(ctx echo.Context) error {
-	//TODO
-	return nil
+	users, err := services.ListAllCommission(h.DB)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, "Internal server error in getting commissions")
+	}
+	var commResponses []CommissionResponse
+	for _, comm := range users {
+		commResponses = append(commResponses, SetCommissionsResponse(comm))
+	}
+	return ctx.JSON(http.StatusOK, commResponses)
 }
 
 func (h *Handler) AdminGetUser(ctx echo.Context) error {
-	//TODO
-	return nil
+	userID := ctx.Param("id")
+	user, err := services.GetUser(h.DB, "id", fmt.Sprintf("%v", userID))
+	if err != nil {
+		return ctx.JSON(http.StatusNotFound, "user not found!")
+	}
+	return ctx.JSON(http.StatusOK, SetUsersResponse(*user))
 }
 
 func (h *Handler) AdminUpdateUser(ctx echo.Context) error {

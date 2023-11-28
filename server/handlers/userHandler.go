@@ -21,6 +21,16 @@ type RegisterRequest struct {
 	Address     string `json:"address" binding:"required"`
 	IsCompany   bool   `json:"is_company" binding:"required"`
 }
+type UserResponse struct {
+	Name        string `json:"name"`
+	Username    string `json:"username"`
+	Email       string `json:"email"`
+	Password    string `json:"password"`
+	PhoneNumber string `json:"phone_number"`
+	Identity    string `json:"identity"`
+	Address     string `json:"address"`
+	Role        uint8  `json:"role"`
+}
 
 // @Summary Create a new user
 // @Description Create a new user with the provided information.
@@ -112,4 +122,15 @@ func ValidateUserUnique(db *gorm.DB, user *RegisterRequest) error {
 		}
 	}
 	return nil
+}
+func SetUsersResponse(user models.User) UserResponse {
+	return UserResponse{
+		Name:        user.Name,
+		Username:    user.Username,
+		Email:       user.Email,
+		PhoneNumber: user.PhoneNumber,
+		Identity:    user.Identity,
+		Address:     user.Address,
+		Role:        user.Role,
+	}
 }
