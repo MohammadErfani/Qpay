@@ -112,8 +112,15 @@ func (h *Handler) AdminUpdateUser(ctx echo.Context) error {
 // gateway handlers
 
 func (h *Handler) AdminListAllGateways(ctx echo.Context) error {
-	//TODO without authorize
-	return nil
+	gateways, err := services.ListAllGateway(h.DB)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, "Internal server error in getting gateways")
+	}
+	var gatewayResponses []GatewayResponse
+	for _, gateway := range gateways {
+		gatewayResponses = append(gatewayResponses, SetGatewayResponse(gateway))
+	}
+	return ctx.JSON(http.StatusOK, gatewayResponses)
 }
 
 func (h *Handler) AdminGetGateway(ctx echo.Context) error {

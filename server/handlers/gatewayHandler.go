@@ -214,17 +214,3 @@ func SetGatewayResponse(gateway models.Gateway) GatewayResponse {
 		Type:          GatewayType,
 	}
 }
-
-// AdminListAllGateway  for Gateway manager return all commission
-func (h *Handler) AdminListAllGateway(ctx echo.Context) error {
-	gateways, err := services.ListAllGateway(h.DB)
-	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, "Internal server error in getting gateways")
-	}
-	var gatewayResponses []GatewayResponse
-	for _, comm := range gateways {
-		gatewayResponses = append(gatewayResponses, SetGatewayResponse(comm))
-	}
-	return ctx.JSON(http.StatusOK, gatewayResponses)
-
-}
