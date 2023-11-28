@@ -181,3 +181,19 @@ func UpdateGateway(db *gorm.DB, userID, gatewayID uint, name, logo string, bankA
 	}
 	return &gateway, nil
 }
+
+func PurchaseAddress(db *gorm.DB, userID, gatewayID uint, route string) (*models.Gateway, error) {
+	fmt.Printf("%v", db)
+	gateway, err := GetSpecificGateway(db, userID, gatewayID)
+	if err != nil {
+		return nil, err
+	}
+	if _, err = GetGateway(db, "route", route); err == nil {
+		return nil, errors.New("already in use")
+	}
+	err = db.Model(&gateway).Updates(models.Gateway{Route: route}).Error
+	if err != nil {
+		return nil, err
+	}
+	return &gateway, nil
+}

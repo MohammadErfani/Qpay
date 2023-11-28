@@ -42,7 +42,10 @@ func (h *Handler) ListAllTransaction(ctx echo.Context) error {
 	h.SetUserID(ctx)
 	transactions, err := services.GetUserTransactions(h.DB, h.UserID)
 	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, "You don't have Any Transaction")
+		return ctx.JSON(http.StatusBadRequest, Response{
+			Status:  "error",
+			Message: "You don't have Any Transaction",
+		})
 	}
 	var TransactionResponses []PaymentTransactionResponse
 	for _, ba := range transactions {
@@ -56,11 +59,17 @@ func (h *Handler) FindTransaction(ctx echo.Context) error {
 	var transaction models.Transaction
 	transactionID, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, "gateway is not correct")
+		return ctx.JSON(http.StatusBadRequest, Response{
+			Status:  "error",
+			Message: "gateway is not correct",
+		})
 	}
 	transaction, err = services.FindTransaction(h.DB, h.UserID, uint(transactionID))
 	if err != nil {
-		return ctx.JSON(http.StatusNotFound, "Gateway does not exist!")
+		return ctx.JSON(http.StatusNotFound, Response{
+			Status:  "error",
+			Message: "Gateway does not exist!",
+		})
 	}
 	return ctx.JSON(http.StatusOK, BeginTransactionResponse(transaction))
 }
@@ -69,11 +78,17 @@ func (h *Handler) FilterTransaction(ctx echo.Context) error {
 	h.SetUserID(ctx)
 	var filter FilterRequest
 	if err := ctx.Bind(&filter); err != nil {
-		return ctx.JSON(http.StatusBadRequest, "Bind Error")
+		return ctx.JSON(http.StatusBadRequest, Response{
+			Status:  "error",
+			Message: "Bind Error",
+		})
 	}
 	filtered, err := services.FilterTransaction(h.DB, h.UserID, filter.StartDate, filter.EndDate, filter.MinAmount, filter.MaxAmount)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, err)
+		return ctx.JSON(http.StatusInternalServerError, Response{
+			Status:  "error",
+			Message: err.Error(),
+		})
 	}
 	var filteredResponse []TransactionResponse
 	for _, i := range filtered {
@@ -93,17 +108,26 @@ func (h *Handler) CreateTransaction(ctx echo.Context) error {
 	route := ctx.Param("route")
 	var req CreateTransactionRequest
 	if err := ctx.Bind(&req); err != nil {
-		return ctx.JSON(http.StatusBadRequest, "Bind Error")
+		return ctx.JSON(http.StatusBadRequest, Response{
+			Status:  "error",
+			Message: "Bind Error",
+		})
 	}
 	gateway, err := services.GetGateway(h.DB, "route", route)
 	if err != nil {
-		return ctx.JSON(http.StatusNotFound, "No get way with such route")
+		return ctx.JSON(http.StatusNotFound, Response{
+			Status:  "error",
+			Message: "No get way with such route",
+		})
 	}
 
 	commission := req.PaymentAmount*gateway.Commission.PercentagePerTrans + gateway.Commission.AmountPerTrans
 	model, err := services.CreateTransaction(h.DB, gateway.ID, req.PaymentAmount, req.PhoneNumber, commission)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, err.Error())
+		return ctx.JSON(http.StatusInternalServerError, Response{
+			Status:  "error",
+			Message: err.Error(),
+		})
 	}
 	return ctx.JSON(http.StatusOK, CreateTransactionResponse{TransactionID: model.ID})
 }
@@ -153,21 +177,33 @@ func (h *Handler) BeginTransaction(ctx echo.Context) error {
 	//یعنی میخواد پرداخت رو کنسل کنه و پرداخت انجام نده
 	if !req.PaymentConfirmation {
 		if err := services.CancelledTransaction(h.DB, req.TransactionID); err != nil {
-			return ctx.JSON(http.StatusBadRequest, err.Error())
+			return ctx.JSON(http.StatusBadRequest, Response{
+				Status:  "error",
+				Message: err.Error(),
+			})
 		}
-		return ctx.JSON(http.StatusNotAcceptable, "your Payment Transaction is Canceled")
+		return ctx.JSON(http.StatusNotAcceptable, Response{
+			Status:  "error",
+			Message: "your Payment Transaction is Canceled",
+		})
 	}
 
 	// حالا که همه چیز آماده انجام تراکنش هست باید اول بررسی شود که
 	// فلیدهای لازم درون درخواست وجود داند یا خیر؟
 	if err := ValidateTransaction(&req); err != nil {
-		return ctx.JSON(http.StatusBadRequest, err.Error())
+		return ctx.JSON(http.StatusBadRequest, Response{
+			Status:  "error",
+			Message: err.Error(),
+		})
 	}
 
 	// اینجا باید به ماک متصل بشم و یه خروجی ازش بگیرم که مثلا از کارت مشتری پول کم شده
 	transaction, err := services.PaymentTransaction(h.DB, req.TransactionID, req.CardYear, req.CardMonth, req.PurchaserCard, req.CVV2, req.Password)
 	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, err.Error())
+		return ctx.JSON(http.StatusBadRequest, Response{
+			Status:  "error",
+			Message: err.Error(),
+		})
 	}
 	return ctx.JSON(http.StatusOK, BeginTransactionResponse(transaction))
 
@@ -207,11 +243,17 @@ func (h *Handler) VerifyTransaction(ctx echo.Context) error {
 	var transaction models.Transaction
 	var req VerifyTransactionRequest
 	if err := ctx.Bind(&req); err != nil {
-		return ctx.JSON(http.StatusBadRequest, "bind error")
+		return ctx.JSON(http.StatusBadRequest, Response{
+			Status:  "error",
+			Message: "bind error",
+		})
 	}
 	transaction, err := services.GetSpecificTransaction(h.DB, req.TrackingCode)
 	if err != nil {
-		return ctx.JSON(http.StatusNotFound, "Transaction does not exist!")
+		return ctx.JSON(http.StatusNotFound, Response{
+			Status:  "error",
+			Message: "Transaction does not exist!",
+		})
 	}
 	return ctx.JSON(http.StatusOK, SetVerifyTransactionResponse(transaction))
 }

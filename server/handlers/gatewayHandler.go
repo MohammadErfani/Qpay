@@ -41,6 +41,10 @@ type UpdateGatewayRequest struct {
 	Logo          string `json:"logo"`
 }
 
+type PurchaseAddressRequest struct {
+	Route string `json:"route"`
+}
+
 func (h *Handler) ListAllGateways(ctx echo.Context) error {
 	h.SetUserID(ctx)
 	gateways, err := services.GetUserGateways(h.DB, h.UserID)
@@ -153,8 +157,65 @@ func (h *Handler) UpdateGateway(ctx echo.Context) error {
 	}
 	return ctx.JSON(http.StatusOK, Response{
 		Status:  "success",
-		Message: "You're gateway is successfully updated",
+		Message: "Your gateway is successfully updated",
 	})
+}
+
+func (h *Handler) PurchaseAddress(ctx echo.Context) error {
+	h.SetUserID(ctx)
+	var req PurchaseAddressRequest
+	gatewayID, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		return ctx.JSON(http.StatusBadRequest, Response{
+			Status:  "error",
+			Message: "gateway is not correct",
+		})
+	}
+	if err = ctx.Bind(&req); err != nil {
+		return ctx.JSON(http.StatusBadRequest, Response{
+			Status:  "error",
+			Message: "Bind Error",
+		})
+	}
+	if err = ValidateRoute(&req); err != nil {
+		return ctx.JSON(http.StatusBadRequest, Response{
+			Status:  "error",
+			Message: err.Error(),
+		})
+	}
+	_, err = services.PurchaseAddress(h.DB, h.UserID, uint(gatewayID), req.Route)
+	if err != nil {
+		if err.Error() == "already in use" {
+			return ctx.JSON(http.StatusConflict, Response{
+				Status:  "error",
+				Message: err.Error(),
+			})
+		}
+		return ctx.JSON(http.StatusBadRequest, Response{
+			Status:  "error",
+			Message: err.Error(),
+		})
+	}
+
+	return ctx.JSON(http.StatusOK, Response{
+		Status:  "success",
+		Message: "Address Set Successfully",
+	})
+}
+
+func (h *Handler) ListCommissions(ctx echo.Context) error {
+	commissions, err := services.ListActiveCommission(h.DB)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, Response{
+			Status:  "error",
+			Message: "Internal server error in getting commissions",
+		})
+	}
+	var commResponses []CommissionResponse
+	for _, comm := range commissions {
+		commResponses = append(commResponses, SetCommissionsResponse(comm))
+	}
+	return ctx.JSON(http.StatusOK, commResponses)
 }
 
 //	func ValidateUniqueGateway(db *gorm.DB, gateway *GatewayRequest) error {
@@ -185,6 +246,16 @@ func ValidateGateway(gateway *GatewayRequest) error {
 		return err
 	}
 
+	return nil
+}
+
+func ValidateRoute(address *PurchaseAddressRequest) error {
+	requiredFields := map[string]string{
+		"route": address.Route,
+	}
+	if err := utils.IsRequired(requiredFields); err != nil {
+		return err
+	}
 	return nil
 }
 func SetGatewayResponse(gateway models.Gateway) GatewayResponse {
