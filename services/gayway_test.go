@@ -178,7 +178,6 @@ func (suite *GatewaySuite) TestPurchaseAddress_Success() {
 	route := "new_route"
 	gateway := models.Gateway{
 		UserID: userID,
-		// set other fields as needed
 	}
 	// Monkey patch GetSpecificGateway
 	monkey.Patch(GetSpecificGateway, func(db *gorm.DB, userID, gatewayID uint) (models.Gateway, error) {
@@ -200,7 +199,81 @@ func (suite *GatewaySuite) TestPurchaseAddress_Success() {
 	require.NotNil(resultGateway, "Expected a non-nil gateway")
 
 }
+func (suite *GatewaySuite) TestPurchaseAddress_Fail() {
+	userID := uint(1)
+	gatewayID := uint(2)
+	route := "new_route"
 
+	monkey.Patch(GetSpecificGateway, func(db *gorm.DB, userID, gatewayID uint) (models.Gateway, error) {
+		return models.Gateway{}, errors.New("gateway not found")
+	})
+	defer monkey.Unpatch(GetSpecificGateway)
+
+	monkey.Patch(GetGateway, func(db *gorm.DB, fieldName, fieldValue string) (*models.Gateway, error) {
+		return &models.Gateway{}, nil // Simulating that the route is already in use
+	})
+	defer monkey.Unpatch(GetGateway)
+
+	resultGateway, err := PurchaseAddress(suite.DB, userID, gatewayID, route)
+
+	require := suite.Require()
+	require.Error(err, "Expected an error")
+	require.Nil(resultGateway, "Expected a nil gateway")
+
+	require.NoError(suite.mock.ExpectationsWereMet())
+}
+func (suite *GatewaySuite) TestGetUserGateways_Success() {
+	userID := uint(1)
+
+	// Mock the successful case where user gateways are retrieved
+	expectedGateways := []models.Gateway{
+		{UserID: userID, User: models.User{Name: "John"}},
+		{UserID: userID, User: models.User{Name: "John"}},
+	}
+	expectedGateways[0].ID = 1
+	expectedGateways[1].ID = 2
+	expectedGateways[0].User.ID = 1
+	expectedGateways[1].User.ID = 1
+
+	gatewayRows := sqlmock.NewRows([]string{"id", "user_id"}).
+		AddRow(1, userID).AddRow(2, userID)
+	suite.mock.ExpectQuery(`SELECT (.+) FROM "gateways" WHERE user_id=\$1`).
+		WithArgs(userID).
+		WillReturnRows(gatewayRows)
+	userRows := sqlmock.NewRows([]string{"id", "name"}).
+		AddRow(1, "John")
+	suite.mock.ExpectQuery(`SELECT (.+) FROM "users" WHERE "users"."id" = \$1`).
+		WithArgs(userID).
+		WillReturnRows(userRows)
+
+	// Call the function being tested
+	resultGateways, err := GetUserGateways(suite.DB, userID)
+
+	// Assertions
+	require := suite.Require()
+	require.NoError(err, "Unexpected error")
+	require.Equal(expectedGateways, resultGateways, "User gateways should match")
+
+	// Ensure the expectations were met
+	require.NoError(suite.mock.ExpectationsWereMet())
+}
+func (suite *GatewaySuite) TestGetUserGateways_Fail() {
+	userID := uint(1)
+	suite.mock.ExpectQuery(`SELECT (.+) FROM "gateways" WHERE user_id=\$1`).
+		WithArgs(userID).
+		WillReturnRows(sqlmock.NewRows([]string{"id", "user_id"}))
+	suite.mock.ExpectQuery(`SELECT (.+) FROM "users" WHERE "users"."id" = \$1`).
+		WithArgs(userID).
+		WillReturnRows(sqlmock.NewRows([]string{"id", "name"}).AddRow(1, "John"))
+
+	resultGateways, err := GetUserGateways(suite.DB, userID)
+
+	require := suite.Require()
+	require.Error(err, "Expected an error")
+	require.Empty(resultGateways, "User gateways should be empty")
+	require.Equal("this user doesn't have any gateway", err.Error(), "Error message should match")
+
+}
 func TestGatewaySuite(t *testing.T) {
 	suite.Run(t, new(GatewaySuite))
 }
