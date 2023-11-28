@@ -21,24 +21,26 @@ type RegisterRequest struct {
 	Address     string `json:"address" binding:"required"`
 	IsCompany   bool   `json:"is_company" binding:"required"` // 0 , 1 , 2
 }
-type UserHandler struct {
-	DB *gorm.DB
-}
-type RegisterResponse struct {
-	Status  string
-	Message string
-}
 
-func (userH *UserHandler) CreateUser(ctx echo.Context) error {
+func (h *Handler) CreateUser(ctx echo.Context) error {
 	var req RegisterRequest
 	if err := ctx.Bind(&req); err != nil {
-		return ctx.JSON(http.StatusBadRequest, "Bind Error")
+		return ctx.JSON(http.StatusBadRequest, Response{
+			Status:  "error",
+			Message: "Bind Error",
+		})
 	}
 	if err := ValidateUser(&req); err != nil {
-		return ctx.JSON(http.StatusForbidden, err.Error())
+		return ctx.JSON(http.StatusForbidden, Response{
+			Status:  "error",
+			Message: err.Error(),
+		})
 	}
-	if err := ValidateUserUnique(userH.DB, &req); err != nil {
-		return ctx.JSON(http.StatusConflict, err.Error())
+	if err := ValidateUserUnique(h.DB, &req); err != nil {
+		return ctx.JSON(http.StatusConflict, Response{
+			Status:  "error",
+			Message: err.Error(),
+		})
 	}
 	user := models.User{
 		Name:        req.Name,
@@ -50,11 +52,14 @@ func (userH *UserHandler) CreateUser(ctx echo.Context) error {
 		Address:     req.Address,
 		Role:        models.SetRole(req.IsCompany),
 	}
-	_, err := services.CreateUser(userH.DB, user)
+	_, err := services.CreateUser(h.DB, user)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, "Internal server error in create user ")
+		return ctx.JSON(http.StatusInternalServerError, Response{
+			Status:  "error",
+			Message: "Internal server error in creating user",
+		})
 	}
-	return ctx.JSON(http.StatusCreated, RegisterResponse{Status: "success", Message: "User created successfully"})
+	return ctx.JSON(http.StatusCreated, Response{Status: "success", Message: "User created successfully"})
 
 }
 func ValidateUser(user *RegisterRequest) error {

@@ -31,6 +31,21 @@ func seed(configPath string) {
 	// seeding User
 	password, _ := utils.HashPassword("1234")
 	user := models.User{
+		Name:        "Omid Moghadas",
+		Email:       "electromidz@gmail.com",
+		Username:    "o.moghadas",
+		Password:    password,
+		PhoneNumber: "09155225920",
+		Address:     "Mashhad",
+		Identity:    "9800",
+		Role:        models.IsNaturalPerson,
+	}
+	err := db.Where(models.User{Email: user.Email}).Or(models.User{PhoneNumber: user.PhoneNumber}).Or(models.User{Username: user.Username}).FirstOrCreate(&user).Error
+	if err != nil {
+		log.Fatal("Error seeding User", err)
+	}
+	password, _ = utils.HashPassword("1234")
+	user = models.User{
 		Name:        "Mohammad Erfani",
 		Email:       "mohammad@gmail.com",
 		Username:    "mohammadErfani",
@@ -40,7 +55,7 @@ func seed(configPath string) {
 		Identity:    "0441111111",
 		Role:        models.IsNaturalPerson,
 	}
-	err := db.Where(models.User{Email: user.Email}).Or(models.User{PhoneNumber: user.PhoneNumber}).Or(models.User{Username: user.Username}).FirstOrCreate(&user).Error
+	err = db.Where(models.User{Email: user.Email}).Or(models.User{PhoneNumber: user.PhoneNumber}).Or(models.User{Username: user.Username}).FirstOrCreate(&user).Error
 	if err != nil {
 		log.Fatal("Error seeding User", err)
 	}
@@ -127,6 +142,18 @@ func seed(configPath string) {
 	err = db.FirstOrCreate(&bankAccount, models.BankAccount{Sheba: bankAccount.Sheba}).Error
 	if err != nil {
 		log.Fatal("error seeding bank account", err)
+	}
+
+	admin := models.User{
+		Name:     cfg.Admin.Name,
+		Email:    cfg.Admin.Email,
+		Username: cfg.Admin.Username,
+		Role:     models.IsAdmin,
+	}
+	admin.Password, _ = utils.HashPassword(cfg.Admin.Password)
+	err = db.Where("email=?", admin.Email).Or("username=?", admin.Username).FirstOrCreate(&admin).Error
+	if err != nil {
+		log.Fatal("error seeding admin", err)
 	}
 	//err = db.FirstOrCreate(&bankAccount).Error
 }

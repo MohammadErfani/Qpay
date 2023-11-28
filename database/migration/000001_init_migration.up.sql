@@ -33,7 +33,6 @@ CREATE TABLE "bank_accounts" (
   "updated_at" timestamp with time zone,
   "deleted_at" timestamp with time zone
 );
-
 CREATE TABLE "gateways" (
   "id" serial PRIMARY KEY,
   "user_id" integer,

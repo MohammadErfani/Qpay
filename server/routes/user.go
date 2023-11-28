@@ -7,8 +7,8 @@ import (
 )
 
 func UserGroup(userG *echo.Group) {
-	userH := &handlers.UserHandler{
+	h := &handlers.Handler{
 		DB: database.DB(),
 	}
-	userG.POST("/register", userH.CreateUser)
+	userG.POST("/register", h.CreateUser)
 }

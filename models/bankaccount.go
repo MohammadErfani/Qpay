@@ -17,6 +17,6 @@ type BankAccount struct {
 }
 
 const (
-	StatusBankAccountInActive = iota
-	StatusBankAccountActive
+	StatusBankAccountActive = iota
+	StatusBankAccountInActive
 )

@@ -15,7 +15,7 @@ func IsValidEmail(email string) error {
 	return nil
 }
 func IsValidPhoneNumber(phoneNumber string) error {
-	//regexPattern := `^\d{9}$`
+	// regexPattern := `^\d{9}$`
 	regexPattern := `^(\+98|0)?9\d{9}$`
 	phoneNumberRegex := regexp.MustCompile(regexPattern)
 	if !phoneNumberRegex.MatchString(phoneNumber) {
@@ -37,6 +37,39 @@ func IsRequired(requiredFields map[string]string) error {
 	for fieldName, value := range requiredFields {
 		if len(strings.TrimSpace(value)) == 0 {
 			return errors.New(fmt.Sprintf("%s is required", fieldName))
+		}
+	}
+	return nil
+}
+
+func IsRequiredID(requiredFields map[string]uint) error {
+	for fieldName, value := range requiredFields {
+		if value == 0 {
+			return errors.New(fmt.Sprintf("%v is required", fieldName))
+		}
+	}
+	return nil
+}
+func IsRequiredInt(requiredFields map[string]int) error {
+	for fieldName, value := range requiredFields {
+		if value == 0 {
+			return errors.New(fmt.Sprintf("%v is required", fieldName))
+		}
+	}
+	return nil
+}
+func IsRequiredUint(requiredFields map[string]uint) error {
+	for fieldName, value := range requiredFields {
+		if value == 0 {
+			return errors.New(fmt.Sprintf("%v is required", fieldName))
+		}
+	}
+	return nil
+}
+func IsRequiredFloat64(requiredFields map[string]float64) error {
+	for fieldName, value := range requiredFields {
+		if value == 0.00 {
+			return errors.New(fmt.Sprintf("%v is required", fieldName))
 		}
 	}
 	return nil

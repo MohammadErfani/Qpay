@@ -22,7 +22,7 @@ var rootCmd = &cobra.Command{
 		cfg := config.InitConfig(cfgFile)
 		db := database.NewPostgres(cfg)
 		_ = db
-		server.StartServer(cfg, server.Instance())
+		server.StartServer(cfg, server.Instance(db, cfg))
 	},
 }
 
