@@ -7,3 +7,13 @@ database:
 
 server:
   port: 8000
+
+auth:
+  secret-key: mysecretkey
+  expiresIn: 15
+
+admin:
+  name: go fellas
+  username: goFellas
+  email: go.fellas@gmail.com
+  password: password

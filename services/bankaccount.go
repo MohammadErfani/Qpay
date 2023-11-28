@@ -32,32 +32,60 @@ func SetUserAndBankForBankAccount(db *gorm.DB, userID uint, bankAccount *models.
 }
 
 // GetUserBankAccounts return all user bank accounts
-func GetUserBankAccounts(db *gorm.DB, userID uint) ([]models.BankAccount, error) {
+// Eager
+/*func GetUserBankAccounts(db *gorm.DB, userID uint) ([]models.BankAccount, error) {
 	user, err := GetUser(db, "id", fmt.Sprintf("%v", userID))
 	if err != nil {
 		return []models.BankAccount{}, err
 	}
-	cards := user.BankAccounts
-	if len(cards) == 0 {
+	bankAccounts := user.BankAccounts
+	if len(bankAccounts) == 0 {
 		return []models.BankAccount{}, errors.New("this user doesn't have any bank account")
 	}
-	return cards, nil
+	return bankAccounts, nil
+}*/
+// Normal
+func GetUserBankAccounts(db *gorm.DB, userID uint) ([]models.BankAccount, error) {
+
+	var bankAccounts []models.BankAccount
+	err := db.Where("user_id=?", userID).Preload("Bank").Find(&bankAccounts).Error
+	if err != nil {
+		return bankAccounts, err
+	}
+
+	if len(bankAccounts) == 0 {
+		return []models.BankAccount{}, errors.New("this user doesn't have any bank account")
+	}
+	return bankAccounts, nil
 }
 
 // GetSpecificBankAccount get only check in users bank accounts and return match
-func GetSpecificBankAccount(db *gorm.DB, userID, bankAccountID uint) (models.BankAccount, error) {
-	cards, err := GetUserBankAccounts(db, userID)
+// Eager
+/*func GetSpecificBankAccount(db *gorm.DB, userID, bankAccountID uint) (models.BankAccount, error) {
+	var bankAccount models.BankAccount
+	err := db.Where("user_id=?",userID).Where("id=?",bankAccountID).First(&bankAccount).Error
+	bankAccounts, err := GetUserBankAccounts(db, userID)
 	if err != nil {
 		return models.BankAccount{}, err
 	}
-	for _, card := range cards {
-		if card.ID == bankAccountID {
-			return card, nil
+	for _, bankAccount := range bankAccounts {
+		if bankAccount.ID == bankAccountID {
+			return bankAccount, nil
 		}
 	}
 	return models.BankAccount{}, errors.New("bank account not found")
-}
+}*/
 
+// normal
+
+func GetSpecificBankAccount(db *gorm.DB, userID, bankAccountID uint) (models.BankAccount, error) {
+	var bankAccount models.BankAccount
+	err := db.Where("id=? AND user_id=?", bankAccountID, userID).Preload("Bank").First(&bankAccount).Error
+	if err != nil {
+		return models.BankAccount{}, errors.New("bank Account Not found")
+	}
+	return bankAccount, nil
+}
 func GetBankAccount(db *gorm.DB, fieldName, fieldValue string) (*models.BankAccount, error) {
 	var bankAccount models.BankAccount
 	err := db.First(&bankAccount, fmt.Sprintf("%s=?", fieldName), fieldValue).Error
@@ -67,6 +95,7 @@ func GetBankAccount(db *gorm.DB, fieldName, fieldValue string) (*models.BankAcco
 	return &bankAccount, nil
 }
 
+// should tested
 func CreateBankAccount(db *gorm.DB, userID uint, sheba string) (*models.BankAccount, error) {
 	bankAccount := models.BankAccount{Sheba: sheba}
 	err := SetUserAndBankForBankAccount(db, userID, &bankAccount)
@@ -80,11 +109,23 @@ func CreateBankAccount(db *gorm.DB, userID uint, sheba string) (*models.BankAcco
 	return &bankAccount, nil
 }
 
+// should tested
 func DeleteBankAccount(db *gorm.DB, userID, bankAccountID uint) error {
-	if _, err := GetSpecificBankAccount(db, userID, bankAccountID); err != nil {
-		return err
+	var bankAccount models.BankAccount
+	err := db.Where("id = ? AND user_id = ?", bankAccountID, userID).Preload("Gateways").First(&bankAccount).Error
+	if err != nil {
+		return errors.New("bank account not found")
 	}
-	result := db.Delete(&models.BankAccount{}, bankAccountID)
+	for _, g := range bankAccount.Gateways {
+		g.Status = models.StatusGatewayInActive
+		db.Save(&g)
+	}
+	//bankAccount, err := GetSpecificBankAccount(db, userID, bankAccountID)
+	//if err != nil {
+	//	return err
+	//}
+
+	result := db.Delete(&bankAccount)
 	if result.RowsAffected == 0 {
 		return errors.New("not found")
 	}

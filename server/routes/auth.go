@@ -1,7 +1,24 @@
 package routes
 
-import echo "github.com/labstack/echo/v4"
+import (
+	"Qpay/config"
+	"Qpay/server/handlers"
 
-func AuthGroup(authG *echo.Group) {
-	authG.POST("/login", func(ctx echo.Context) error { return nil })
+	echo "github.com/labstack/echo/v4"
+	"gorm.io/gorm"
+)
+
+type Auth struct {
+	DB  *gorm.DB
+	JWT *config.JWT
+}
+
+func AuthGroup(authG *echo.Group, db *gorm.DB, cfg *config.Config) {
+
+	auth := &handlers.Auth{
+		DB:  db,
+		JWT: &cfg.JWT,
+	}
+	// authG.POST("/login", auth.Login)
+	authG.POST("/login", auth.Login)
 }
