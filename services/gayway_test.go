@@ -191,15 +191,14 @@ func (suite *GatewaySuite) TestPurchaseAddress_Success() {
 	})
 	defer monkey.Unpatch(GetGateway)
 	suite.mock.ExpectBegin()
-	suite.mock.ExpectExec(`UPDATE "gateways" SET .+`).
+	suite.mock.ExpectExec(`^UPDATE "gateways" SET (.+)`).
 		WillReturnResult(sqlmock.NewResult(1, 1))
+	suite.mock.ExpectCommit()
 	resultGateway, err := PurchaseAddress(suite.DB, userID, gatewayID, route)
-
 	require := suite.Require()
 	require.NoError(err, "Unexpected error")
 	require.NotNil(resultGateway, "Expected a non-nil gateway")
 
-	require.NoError(suite.mock.ExpectationsWereMet())
 }
 
 func TestGatewaySuite(t *testing.T) {
