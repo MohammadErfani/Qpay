@@ -45,6 +45,16 @@ type PurchaseAddressRequest struct {
 	Route string `json:"route"`
 }
 
+// ListAllGateways godoc
+// @Summary List all gateways for the authenticated user
+// @Description Retrieve a list of all gateways associated with the authenticated user.
+// @Tags gateways
+// @Accept json
+// @Produce json
+// @Success 200 {array} GatewayResponse "List of gateways"
+// @Failure 400 {object} Response "{"status": "error", "message": "You didn't add any gateway. Please register a gateway!"}"
+// @Security ApiKeyAuth
+// @Router /gateway [get]
 func (h *Handler) ListAllGateways(ctx echo.Context) error {
 	h.SetUserID(ctx)
 	gateways, err := services.GetUserGateways(h.DB, h.UserID)
@@ -62,6 +72,18 @@ func (h *Handler) ListAllGateways(ctx echo.Context) error {
 
 }
 
+// FindGateway godoc
+// @Summary Find a gateway by ID for the authenticated user
+// @Description Retrieve details of a specific gateway associated with the authenticated user.
+// @Tags gateways
+// @Accept json
+// @Produce json
+// @Param id path int true "Gateway ID"
+// @Success 200 {object} GatewayResponse "Gateway details"
+// @Failure 400 {object} Response "{"status": "error", "message": "Gateway ID is not correct"}"
+// @Failure 404 {object} Response "{"status": "error", "message": "Gateway does not exist!"}"
+// @Security ApiKeyAuth
+// @Router /gateway/{id} [get]
 func (h *Handler) FindGateway(ctx echo.Context) error {
 	h.SetUserID(ctx)
 	var gateway models.Gateway
@@ -82,6 +104,21 @@ func (h *Handler) FindGateway(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, SetGatewayResponse(gateway))
 }
 
+// RegisterNewGateway godoc
+// @Summary Register a new gateway for the authenticated user
+// @Description Register a new gateway with the provided details.
+// @Tags gateways
+// @Accept json
+// @Produce json
+// @Param gatewayRequest body GatewayRequest true "Gateway details"
+// @Success 201 {object} Response "Success message"
+// @Failure 400 {object} Response "{"status": "error", "message": "Bind Error"}"
+// @Failure 403 {object} Response "{"status": "error", "message": "Gateway doesn't match your credential"}"
+// @Failure 403 {object} Response "{"status": "error", "message": "You already have a personal gateway"}"
+// @Failure 403 {object} Response "{"status": "error", "message": "Commission is incorrect"}"
+// @Failure 500 {object} Response "{"status": "error", "message": "Internal server error in gateway"}"
+// @Security ApiKeyAuth
+// @Router /gateway [post]
 func (h *Handler) RegisterNewGateway(ctx echo.Context) error {
 	h.SetUserID(ctx)
 	var req GatewayRequest
@@ -132,6 +169,19 @@ func (h *Handler) RegisterNewGateway(ctx echo.Context) error {
 	})
 }
 
+// UpdateGateway godoc
+// @Summary Update a gateway for the authenticated user
+// @Description Update details of a specific gateway associated with the authenticated user.
+// @Tags gateways
+// @Accept json
+// @Produce json
+// @Param id path int true "Gateway ID"
+// @Param updateRequest body UpdateGatewayRequest true "Updated gateway details"
+// @Success 200 {object} Response "Success message"
+// @Failure 400 {object} Response "{"status": "error", "message": "Bind Error"}"
+// @Failure 400 {object} Response "{"status": "error", "message": "Invalid gateway details"}"
+// @Security ApiKeyAuth
+// @Router /gateway/{id} [patch]
 func (h *Handler) UpdateGateway(ctx echo.Context) error {
 	h.SetUserID(ctx)
 	var req UpdateGatewayRequest
@@ -161,6 +211,19 @@ func (h *Handler) UpdateGateway(ctx echo.Context) error {
 	})
 }
 
+// PurchaseAddress godoc
+// @Summary Purchase an address for a gateway
+// @Description Purchase an address for a specific gateway associated with the authenticated user.
+// @Tags gateways
+// @Accept json
+// @Produce json
+// @Param id path int true "Gateway ID"
+// @Param purchaseAddressRequest body PurchaseAddressRequest true "Purchase address details"
+// @Success 200 {object} Response "Success message"
+// @Failure 400 {object} Response "{"status": "error", "message": "Bind Error"}"
+// @Failure 400 {object} Response "{"status": "error", "message": "Address already in use"}"
+// @Security ApiKeyAuth
+// @Router /gateway/{id}/address [patch]
 func (h *Handler) PurchaseAddress(ctx echo.Context) error {
 	h.SetUserID(ctx)
 	var req PurchaseAddressRequest
@@ -203,6 +266,16 @@ func (h *Handler) PurchaseAddress(ctx echo.Context) error {
 	})
 }
 
+// ListCommissions godoc
+// @Summary List all active commissions
+// @Description Retrieve a list of all active commissions.
+// @Tags gateways
+// @Accept json
+// @Produce json
+// @Success 200 {array} CommissionResponse "List of commissions"
+// @Failure 500 {object} Response "{"status": "error", "message": "Internal server error in getting commissions"}"
+// @Security ApiKeyAuth
+// @Router /gateway/commission/list [get]
 func (h *Handler) ListCommissions(ctx echo.Context) error {
 	commissions, err := services.ListActiveCommission(h.DB)
 	if err != nil {

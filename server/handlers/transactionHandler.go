@@ -38,6 +38,16 @@ type FilterRequest struct {
 	MaxAmount *float64 `json:"max_amount"`
 }
 
+// ListAllTransaction godoc
+// @Summary List all transactions for the authenticated user
+// @Description Retrieve a list of all transactions associated with the authenticated user.
+// @Tags transactions
+// @Accept json
+// @Produce json
+// @Success 200 {array} TransactionResponse "List of transactions"
+// @Failure 400 {object} Response "{"status": "error", "message": "You don't have any transaction"}"
+// @Security ApiKeyAuth
+// @Router /transaction/list [get]
 func (h *Handler) ListAllTransaction(ctx echo.Context) error {
 	h.SetUserID(ctx)
 	transactions, err := services.GetUserTransactions(h.DB, h.UserID)
@@ -54,6 +64,18 @@ func (h *Handler) ListAllTransaction(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, TransactionResponses)
 }
 
+// FindTransaction godoc
+// @Summary Find a transaction by ID for the authenticated user
+// @Description Retrieve details of a specific transaction associated with the authenticated user.
+// @Tags transactions
+// @Accept json
+// @Produce json
+// @Param id path int true "Transaction ID"
+// @Success 200 {object} TransactionResponse "Transaction details"
+// @Failure 400 {object} Response "{"status": "error", "message": "Transaction ID is not correct"}"
+// @Failure 404 {object} Response "{"status": "error", "message": "Transaction does not exist!"}"
+// @Security ApiKeyAuth
+// @Router /transaction/find/{id} [get]
 func (h *Handler) FindTransaction(ctx echo.Context) error {
 	h.SetUserID(ctx)
 	var transaction models.Transaction
@@ -74,6 +96,18 @@ func (h *Handler) FindTransaction(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, BeginTransactionResponse(transaction))
 }
 
+// FilterTransaction godoc
+// @Summary Filter transactions for the authenticated user
+// @Description Filter transactions based on start date, end date, and payment amount range.
+// @Tags transactions
+// @Accept json
+// @Produce json
+// @Param filterRequest body FilterRequest true "Filter criteria"
+// @Success 200 {array} TransactionResponse "List of filtered transactions"
+// @Failure 400 {object} Response "{"status": "error", "message": "Bind Error"}"
+// @Failure 500 {object} Response "{"status": "error", "message": "Internal server error"}"
+// @Security ApiKeyAuth
+// @Router /transaction/filter [post]
 func (h *Handler) FilterTransaction(ctx echo.Context) error {
 	h.SetUserID(ctx)
 	var filter FilterRequest
@@ -104,6 +138,21 @@ func (h *Handler) FilterTransaction(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, filteredResponse)
 }
 
+// CreateTransaction godoc
+// @Summary Create a new transaction for the authenticated user
+// @Description Create a new transaction with the provided payment details.
+// @Tags transactions
+// @Accept json
+// @Produce json
+// @Param route path string true "Gateway route"
+// @Param transactionRequest body CreateTransactionRequest true "Transaction details"
+// @Success 200 {object} CreateTransactionResponse "Transaction ID"
+// @Failure 400 {object} Response "{"status": "error", "message": "Bind Error"}"
+// @Failure 404 {object} Response "{"status": "error", "message": "No gateway with such route"}"
+// @Failure 403 {object} Response "{"status": "error", "message": "SHEBA doesn't match your credentials"}"
+// @Failure 500 {object} Response "{"status": "error", "message": "Internal server error in create transaction"}"
+// @Security ApiKeyAuth
+// @Router /transaction/create/{route} [post]
 func (h *Handler) CreateTransaction(ctx echo.Context) error {
 	route := ctx.Param("route")
 	var req CreateTransactionRequest
@@ -132,6 +181,17 @@ func (h *Handler) CreateTransaction(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, CreateTransactionResponse{TransactionID: model.ID})
 }
 
+// GetTransactionForStart godoc
+// @Summary Get transaction details for starting a transaction
+// @Description Get transaction details to start a payment transaction.
+// @Tags transactions
+// @Accept json
+// @Produce json
+// @Param id path int true "Transaction ID"
+// @Success 200 {object} TransactionStartResponse "Transaction details for start"
+// @Failure 500 {object} Response "{"status": "error", "message": "Internal server error"}"
+// @Security ApiKeyAuth
+// @Router /transaction/start/{id} [get]
 func (h *Handler) GetTransactionForStart(ctx echo.Context) error {
 	transactionid, _ := strconv.ParseUint(ctx.Param("id"), 10, 64)
 	transaction, err := services.GetTransactionByID(h.DB, uint(transactionid))
@@ -159,6 +219,20 @@ type PaymentTransactionResponse struct {
 	PurchaserCard string  `json:"purchaser_card"`
 }
 
+// BeginTransaction godoc
+// @Summary Begin a payment transaction
+// @Description Begin a payment transaction with the provided payment details.
+// @Tags transactions
+// @Accept json
+// @Produce json
+// @Param transactionRequest body PaymentTransactionRequest true "Payment transaction details"
+// @Success 200 {object} PaymentTransactionResponse "Payment transaction details"
+// @Failure 400 {object} Response "{"status": "error", "message": "Bind Error"}"
+// @Failure 400 {object} Response "{"status": "error", "message": "Invalid transaction details"}"
+// @Failure 403 {object} Response "{"status": "error", "message": "Transaction is Canceled"}"
+// @Failure 500 {object} Response "{"status": "error", "message": "Internal server error"}"
+// @Security ApiKeyAuth
+// @Router /transaction/start [post]
 func BeginTransactionResponse(transaction models.Transaction) PaymentTransactionResponse {
 	return PaymentTransactionResponse{
 		TransactionID: transaction.ID,
@@ -239,6 +313,18 @@ type VerifyTransactionRequest struct {
 	TrackingCode string `json:"tracking_code"`
 }
 
+// VerifyTransaction godoc
+// @Summary Verify a transaction by tracking code
+// @Description Verify a transaction by tracking code and retrieve its details.
+// @Tags transactions
+// @Accept json
+// @Produce json
+// @Param verifyRequest body VerifyTransactionRequest true "Verification request"
+// @Success 200 {object} TransactionResponse "Transaction details"
+// @Failure 400 {object} Response "{"status": "error", "message": "Bind Error"}"
+// @Failure 404 {object} Response "{"status": "error", "message": "Transaction does not exist!"}"
+// @Security ApiKeyAuth
+// @Router /transaction/verify [post]
 func (h *Handler) VerifyTransaction(ctx echo.Context) error {
 	var transaction models.Transaction
 	var req VerifyTransactionRequest
