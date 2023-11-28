@@ -183,7 +183,7 @@ func UpdateGateway(db *gorm.DB, userID, gatewayID uint, name, logo string, bankA
 }
 
 func PurchaseAddress(db *gorm.DB, userID, gatewayID uint, route string) (*models.Gateway, error) {
-	fmt.Printf("%v", db)
+
 	gateway, err := GetSpecificGateway(db, userID, gatewayID)
 	if err != nil {
 		return nil, err
