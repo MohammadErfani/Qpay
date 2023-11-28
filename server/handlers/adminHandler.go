@@ -136,8 +136,15 @@ func (h *Handler) AdminUpdateGateway(ctx echo.Context) error {
 // transaction handlers
 
 func (h *Handler) AdminListTransactions(ctx echo.Context) error {
-	//TODO
-	return nil
+	transactions, err := services.ListAllTransaction(h.DB)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, "Internal server error in getting transactions")
+	}
+	var transactionResponses []TransactionResponse
+	for _, transaction := range transactions {
+		transactionResponses = append(transactionResponses, SetVerifyTransactionResponse(transaction))
+	}
+	return ctx.JSON(http.StatusOK, transactionResponses)
 }
 
 func (h *Handler) AdminGetTransaction(ctx echo.Context) error {

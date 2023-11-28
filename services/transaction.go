@@ -96,3 +96,11 @@ func PaymentTransaction(db *gorm.DB, TransactionID uint, CardYear int, CardMonth
 	// حالا بای خروجی را مشخص کنیم
 	return transaction, nil
 }
+func ListAllTransaction(db *gorm.DB) ([]models.Transaction, error) {
+	var transactions []models.Transaction
+	err := db.Preload("Commission").Preload("BankAccount").Find(&transactions).Error
+	if err != nil {
+		return transactions, errors.New("error getting commissions")
+	}
+	return transactions, nil
+}

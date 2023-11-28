@@ -184,7 +184,7 @@ func UpdateGateway(db *gorm.DB, userID, gatewayID uint, name, logo string, bankA
 
 func ListAllGateway(db *gorm.DB) ([]models.Gateway, error) {
 	var gateway []models.Gateway
-	err := db.Preload("User").Find(&gateway).Error
+	err := db.Preload("User").Preload("BankAccount").Find(&gateway).Error
 	if err != nil {
 		return gateway, errors.New("error getting gateways")
 	}
