@@ -215,20 +215,16 @@ func SetGatewayResponse(gateway models.Gateway) GatewayResponse {
 	}
 }
 
-//func (h *Handler) ChangeGetawayBankAccount(ctx echo.Context) error {
-//	var req ChangeGatewayRequest
-//	if err := ctx.Bind(&req); err != nil {
-//		return ctx.JSON(http.StatusBadRequest, "Bind Error")
-//	}
-//	gateway, err := services.GetSpecificGateway(h.DB, h.UserID, req.GatewayID)
-//	if err != nil {
-//		return ctx.JSON(http.StatusForbidden, "gateway doesn't exist for this user")
-//	}
-//	_, err = services.GetSpecificBankAccount(h.DB, h.UserID, req.BankAccountID)
-//	if err != nil {
-//		return ctx.JSON(http.StatusForbidden, "bank account doesn't exist for this user")
-//	}
-//	gateway.BankAccountID = req.BankAccountID
-//	return ctx.JSON(http.StatusForbidden, "Bank account updated successfully")
-//
-//}
+// AdminListAllGateway  for Gateway manager return all commission
+func (h *Handler) AdminListAllGateway(ctx echo.Context) error {
+	gateways, err := services.ListAllGateway(h.DB)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, "Internal server error in getting gateways")
+	}
+	var gatewayResponses []GatewayResponse
+	for _, comm := range gateways {
+		gatewayResponses = append(gatewayResponses, SetGatewayResponse(comm))
+	}
+	return ctx.JSON(http.StatusOK, gatewayResponses)
+
+}
