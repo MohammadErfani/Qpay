@@ -124,8 +124,12 @@ func (h *Handler) AdminListAllGateways(ctx echo.Context) error {
 }
 
 func (h *Handler) AdminGetGateway(ctx echo.Context) error {
-	//TODO without authorize
-	return nil
+	gatewayID := ctx.Param("id")
+	gateway, err := services.GetGateway(h.DB, "id", fmt.Sprintf("%v", gatewayID))
+	if err != nil {
+		return ctx.JSON(http.StatusNotFound, "gateway not found!")
+	}
+	return ctx.JSON(http.StatusOK, SetGatewayResponse(*gateway))
 }
 
 func (h *Handler) AdminUpdateGateway(ctx echo.Context) error {
@@ -142,14 +146,18 @@ func (h *Handler) AdminListTransactions(ctx echo.Context) error {
 	}
 	var transactionResponses []TransactionResponse
 	for _, transaction := range transactions {
-		transactionResponses = append(transactionResponses, SetVerifyTransactionResponse(transaction))
+		transactionResponses = append(transactionResponses, SetTransactionResponse(transaction))
 	}
 	return ctx.JSON(http.StatusOK, transactionResponses)
 }
 
 func (h *Handler) AdminGetTransaction(ctx echo.Context) error {
-	//TODO
-	return nil
+	transactionID := ctx.Param("id")
+	transaction, err := services.GetTransaction(h.DB, "id", fmt.Sprintf("%v", transactionID))
+	if err != nil {
+		return ctx.JSON(http.StatusNotFound, "transaction not found!")
+	}
+	return ctx.JSON(http.StatusOK, SetTransactionResponse(*transaction))
 }
 
 func (h *Handler) AdminUpdateTransaction(ctx echo.Context) error {

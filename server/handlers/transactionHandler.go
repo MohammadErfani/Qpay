@@ -186,9 +186,10 @@ func (h *Handler) VerifyTransaction(ctx echo.Context) error {
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, "Transaction does not exist!")
 	}
-	return ctx.JSON(http.StatusOK, SetVerifyTransactionResponse(transaction))
+	return ctx.JSON(http.StatusOK, SetTransactionResponse(transaction))
 }
-func SetVerifyTransactionResponse(transaction models.Transaction) TransactionResponse {
+
+func SetTransactionResponse(transaction models.Transaction) TransactionResponse {
 	var status string
 	if transaction.Status == models.NotPaid {
 		status = "NotPaid"

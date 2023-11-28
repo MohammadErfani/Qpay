@@ -104,3 +104,11 @@ func ListAllTransaction(db *gorm.DB) ([]models.Transaction, error) {
 	}
 	return transactions, nil
 }
+func GetTransaction(db *gorm.DB, fieldName, fieldValue string) (*models.Transaction, error) {
+	var transaction models.Transaction
+	err := db.First(&transaction, fmt.Sprintf("%s=?", fieldName), fieldValue).Error
+	if err != nil {
+		return nil, errors.New("transaction not found")
+	}
+	return &transaction, nil
+}
