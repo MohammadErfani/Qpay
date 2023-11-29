@@ -34,6 +34,20 @@ type CommissionResponse struct {
 	Status          string  `json:"status"`
 }
 
+// AdminCreate godoc
+// @Summary Create a new admin
+// @Description Register a new admin with the provided details.
+// @Tags admin
+// @Accept json
+// @Produce json
+// @Param adminRequest body AdminRequest true "Admin details"
+// @Success 201 {object} Response "Success message"
+// @Failure 400 {object} Response "{"status": "error", "message": "Bind Error"}"
+// @Failure 403 {object} Response "{"status": "error", "message": "Invalid admin details"}"
+// @Failure 409 {object} Response "{"status": "error", "message": "Username or email already exists"}"
+// @Failure 500 {object} Response "{"status": "error", "message": "Internal server error in create admin"}"
+// @Security ApiKeyAuth
+// @Router /admin/register [post]
 func (h *Handler) AdminCreate(ctx echo.Context) error {
 	var req AdminRequest
 	if err := ctx.Bind(&req); err != nil {
@@ -65,9 +79,16 @@ func (h *Handler) AdminCreate(ctx echo.Context) error {
 
 }
 
-// commission handlers
-
-// AdminListAllCommission  for commission manager return all commission
+// AdminListAllCommission godoc
+// @Summary List all commissions
+// @Description Retrieve a list of all commissions.
+// @Tags admin
+// @Accept json
+// @Produce json
+// @Success 200 {array} CommissionResponse "List of commissions"
+// @Failure 500 {object} Response "{"status": "error", "message": "Internal server error in getting commissions"}"
+// @Security ApiKeyAuth
+// @Router /admin/commission [get]
 func (h *Handler) AdminListAllCommission(ctx echo.Context) error {
 	commissions, err := services.ListAllCommission(h.DB)
 	if err != nil {
@@ -84,6 +105,18 @@ func (h *Handler) AdminListAllCommission(ctx echo.Context) error {
 
 }
 
+// AdminCreateCommission godoc
+// @Summary Create a new commission
+// @Description Create a new commission with the provided details.
+// @Tags admin
+// @Accept json
+// @Produce json
+// @Param commissionRequest body CommissionRequest true "Commission details"
+// @Success 201 {object} CommissionResponse "Created commission details"
+// @Failure 400 {object} Response "{"status": "error", "message": "Bind Error"}"
+// @Failure 500 {object} Response "{"status": "error", "message": "Internal server error in creating commission"}"
+// @Security ApiKeyAuth
+// @Router /admin/commission [post]
 func (h *Handler) AdminCreateCommission(ctx echo.Context) error {
 	var req CommissionRequest
 	if err := ctx.Bind(&req); err != nil {
@@ -102,6 +135,17 @@ func (h *Handler) AdminCreateCommission(ctx echo.Context) error {
 	return ctx.JSON(http.StatusCreated, SetCommissionsResponse(*comm))
 }
 
+// AdminGetCommission godoc
+// @Summary Get commission by ID
+// @Description Retrieve details of a specific commission by its ID.
+// @Tags admin
+// @Accept json
+// @Produce json
+// @Param id path int true "Commission ID"
+// @Success 200 {object} CommissionResponse "Commission details"
+// @Failure 404 {object} Response "{"status": "error", "message": "Commission not found!"}"
+// @Security ApiKeyAuth
+// @Router /admin/commission/{id} [get]
 func (h *Handler) AdminGetCommission(ctx echo.Context) error {
 	commID := ctx.Param("id")
 	comm, err := services.GetCommission(h.DB, "id", fmt.Sprintf("%v", commID))
@@ -114,8 +158,16 @@ func (h *Handler) AdminGetCommission(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, SetCommissionsResponse(*comm))
 }
 
-// user handlers
-
+// AdminListUsers godoc
+// @Summary List all users
+// @Description Retrieve a list of all users.
+// @Tags admin
+// @Accept json
+// @Produce json
+// @Success 200 {array} UserResponse "List of users"
+// @Failure 500 {object} Response "{"status": "error", "message": "Internal server error in getting users"}"
+// @Security ApiKeyAuth
+// @Router /admin/user [get]
 func (h *Handler) AdminListUsers(ctx echo.Context) error {
 	users, err := services.ListAllUser(h.DB)
 	if err != nil {
@@ -131,6 +183,17 @@ func (h *Handler) AdminListUsers(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, userResponses)
 }
 
+// AdminGetUser godoc
+// @Summary Get user by ID
+// @Description Retrieve details of a specific user by its ID.
+// @Tags admin
+// @Accept json
+// @Produce json
+// @Param id path int true "User ID"
+// @Success 200 {object} UserResponse "User details"
+// @Failure 404 {object} Response "{"status": "error", "message": "User not found!"}"
+// @Security ApiKeyAuth
+// @Router /admin/user/{id} [get]
 func (h *Handler) AdminGetUser(ctx echo.Context) error {
 	userID := ctx.Param("id")
 	user, err := services.GetUser(h.DB, "id", fmt.Sprintf("%v", userID))
@@ -143,6 +206,20 @@ func (h *Handler) AdminGetUser(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, SetUsersResponse(*user))
 }
 
+// AdminUpdateUser godoc
+// @Summary Update user status by ID
+// @Description Update the status of a specific user by its ID.
+// @Tags admin
+// @Accept json
+// @Produce json
+// @Param id path int true "User ID"
+// @Param updateRequest body StatusRequest true "Updated status details"
+// @Success 200 {object} Response "Success message"
+// @Failure 400 {object} Response "{"status": "error", "message": "Bind error"}"
+// @Failure 400 {object} Response "{"status": "error", "message": "Status field is unsupported"}"
+// @Failure 500 {object} Response "{"status": "error", "message": "Internal server error"}"
+// @Security ApiKeyAuth
+// @Router /admin/user/{id} [patch]
 func (h *Handler) AdminUpdateUser(ctx echo.Context) error {
 	userID := ctx.Param("id")
 	user, err := services.GetUser(h.DB, "id", fmt.Sprintf("%v", userID))
@@ -179,8 +256,16 @@ func (h *Handler) AdminUpdateUser(ctx echo.Context) error {
 
 }
 
-// gateway handlers
-
+// AdminListAllGateways godoc
+// @Summary List all gateways
+// @Description Retrieve a list of all gateways.
+// @Tags admin
+// @Accept json
+// @Produce json
+// @Success 200 {array} GatewayResponse "List of gateways"
+// @Failure 500 {object} Response "{"status": "error", "message": "Internal server error in getting gateways"}"
+// @Security ApiKeyAuth
+// @Router /admin/gateway [get]
 func (h *Handler) AdminListAllGateways(ctx echo.Context) error {
 	gateways, err := services.ListAllGateway(h.DB)
 	if err != nil {
@@ -196,6 +281,17 @@ func (h *Handler) AdminListAllGateways(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, gatewayResponses)
 }
 
+// AdminGetGateway godoc
+// @Summary Get gateway by ID
+// @Description Retrieve details of a specific gateway by its ID.
+// @Tags admin
+// @Accept json
+// @Produce json
+// @Param id path int true "Gateway ID"
+// @Success 200 {object} GatewayResponse "Gateway details"
+// @Failure 404 {object} Response "{"status": "error", "message": "Gateway not found!"}"
+// @Security ApiKeyAuth
+// @Router /admin/gateway/{id} [get]
 func (h *Handler) AdminGetGateway(ctx echo.Context) error {
 	gatewayID := ctx.Param("id")
 	gateway, err := services.GetGateway(h.DB, "id", fmt.Sprintf("%v", gatewayID))
@@ -208,6 +304,20 @@ func (h *Handler) AdminGetGateway(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, SetGatewayResponse(*gateway))
 }
 
+// AdminUpdateGateway godoc
+// @Summary Update gateway status by ID
+// @Description Update the status of a specific gateway by its ID.
+// @Tags admin
+// @Accept json
+// @Produce json
+// @Param id path int true "Gateway ID"
+// @Param updateRequest body StatusRequest true "Updated status details"
+// @Success 200 {object} GatewayResponse "Updated gateway details"
+// @Failure 400 {object} Response "{"status": "error", "message": "Bind error"}"
+// @Failure 400 {object} Response "{"status": "error", "message": "Status field is unsupported"}"
+// @Failure 500 {object} Response "{"status": "error", "message": "Internal server error"}"
+// @Security ApiKeyAuth
+// @Router /admin/gateway/{id} [patch]
 func (h *Handler) AdminUpdateGateway(ctx echo.Context) error {
 	gatewayID := ctx.Param("id")
 	gateway, err := services.GetGateway(h.DB, "id", fmt.Sprintf("%v", gatewayID))
@@ -242,6 +352,16 @@ func (h *Handler) AdminUpdateGateway(ctx echo.Context) error {
 
 // transaction handlers
 
+// AdminListTransactions godoc
+// @Summary List all transactions
+// @Description Retrieve a list of all transactions.
+// @Tags admin
+// @Accept json
+// @Produce json
+// @Success 200 {array} TransactionResponse "List of transactions"
+// @Failure 500 {object} Response "{"status": "error", "message": "Internal server error in getting transactions"}"
+// @Security ApiKeyAuth
+// @Router /admin/transaction [get]
 func (h *Handler) AdminListTransactions(ctx echo.Context) error {
 	transactions, err := services.ListAllTransaction(h.DB)
 	if err != nil {
@@ -257,6 +377,17 @@ func (h *Handler) AdminListTransactions(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, transactionResponses)
 }
 
+// AdminGetTransaction godoc
+// @Summary Get transaction by ID
+// @Description Retrieve details of a specific transaction by its ID.
+// @Tags admin
+// @Accept json
+// @Produce json
+// @Param id path int true "Transaction ID"
+// @Success 200 {object} TransactionResponse "Transaction details"
+// @Failure 404 {object} Response "{"status": "error", "message": "Transaction not found!"}"
+// @Security ApiKeyAuth
+// @Router /admin/transaction/{id} [get]
 func (h *Handler) AdminGetTransaction(ctx echo.Context) error {
 	transactionID := ctx.Param("id")
 	transaction, err := services.GetTransaction(h.DB, "id", fmt.Sprintf("%v", transactionID))
@@ -269,6 +400,20 @@ func (h *Handler) AdminGetTransaction(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, SetTransactionResponse(*transaction))
 }
 
+// AdminUpdateTransaction godoc
+// @Summary Update transaction status by ID
+// @Description Update the status of a specific transaction by its ID.
+// @Tags admin
+// @Accept json
+// @Produce json
+// @Param id path int true "Transaction ID"
+// @Param updateRequest body StatusRequest true "Updated status details"
+// @Success 200 {object} TransactionResponse "Updated transaction details"
+// @Failure 400 {object} Response "{"status": "error", "message": "Bind error"}"
+// @Failure 400 {object} Response "{"status": "error", "message": "Status field is unsupported"}"
+// @Failure 500 {object} Response "{"status": "error", "message": "Internal server error"}"
+// @Security ApiKeyAuth
+// @Router /admin/transaction/{id} [patch]
 func (h *Handler) AdminUpdateTransaction(ctx echo.Context) error {
 	transactionID := ctx.Param("id")
 	transaction, err := services.GetTransaction(h.DB, "id", fmt.Sprintf("%v", transactionID))

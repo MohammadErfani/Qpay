@@ -16,15 +16,31 @@ type Auth struct {
 }
 
 type LoginReq struct {
-	Email       string
-	PhoneNumber string
-	Password    string
+	Email       string `json:"email"`
+	PhoneNumber string `json:"phone_number"`
+	Password    string `json:"password"`
 }
 
 type LoginRes struct {
 	Token string `json:"token"`
 }
 
+// Login godoc
+// @Summary User login
+// @Description Log in a user using email/phone and password.
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param loginRequest body LoginReq true "Login details"
+// @Success 200 {object} LoginRes "Login successful, returns JWT token"
+// @Failure 400 {object} Response "{"hasError": "true", "message": "Bad request"}"
+// @Failure 400 {object} Response "{"hasError": "true", "message": "Invalid email format"}"
+// @Failure 400 {object} Response "{"hasError": "true", "message": "Invalid phone number format"}"
+// @Failure 400 {object} Response "{"hasError": "true", "message": "Please input your password!"}"
+// @Failure 400 {object} Response "{"hasError": "true", "message": "This user not valid!"}"
+// @Failure 400 {object} Response "{"message": "Bad request"}"
+// @Security ApiKeyAuth
+// @Router /login [post]
 func (auth *Auth) Login(ctx echo.Context) error {
 
 	json_map := make(map[string]interface{})
@@ -81,8 +97,4 @@ func (auth *Auth) Login(ctx echo.Context) error {
 	jsonToken.Token = token
 
 	return ctx.JSON(http.StatusOK, jsonToken)
-}
-
-func TestHandler(ctx echo.Context) error {
-	return ctx.JSON(http.StatusOK, map[string]string{"hasError": "false", "message": "Your test is done!"})
 }

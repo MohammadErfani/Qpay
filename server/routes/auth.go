@@ -19,6 +19,5 @@ func AuthGroup(authG *echo.Group, db *gorm.DB, cfg *config.Config) {
 		DB:  db,
 		JWT: &cfg.JWT,
 	}
-	// authG.POST("/login", auth.Login)
 	authG.POST("/login", auth.Login)
 }

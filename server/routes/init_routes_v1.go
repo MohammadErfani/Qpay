@@ -3,7 +3,6 @@ package routes
 import (
 	"Qpay/config"
 	_ "Qpay/docs"
-	"Qpay/server/handlers"
 	"Qpay/server/middlewares"
 	"github.com/labstack/echo/v4"
 	echoSwagger "github.com/swaggo/echo-swagger"
@@ -19,9 +18,8 @@ func InitRoutesV1(db *gorm.DB, cfg *config.Config) *echo.Echo {
 	}
 
 	e := echo.New()
-	e.GET("/swagger/*", echoSwagger.WrapHandler)
+	e.GET("/doc/*", echoSwagger.WrapHandler)
 	v1 := e.Group("/api/v1")
-	v1.GET("/test", handlers.TestHandler, authMiddleware.AuthMiddleware)
 	v1Auth := v1.Group("", authMiddleware.AuthMiddleware)
 	v1Admin := v1.Group("", authMiddleware.AuthMiddleware, middlewares.AdminMiddleware)
 	UserGroup(v1)
