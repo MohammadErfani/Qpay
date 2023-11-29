@@ -1,21 +1,23 @@
 # Qpay
 
-**Table of Contents**
-
-- [About the project](#about-the-project)
-    - [API docs](#api-docs)
-    - [Clone Project](#clone-project) 
-      - [Control version](#control-version)
-      - [Branches](#branches) 
-    - [Status](#status)
-- [Getting started](#getting-started)
-  - [Layout](#layout)
-  - [Notes](#notes)
-
 ## About the project
 
 The template is used to create golang project. All golang projects must follow the conventions in the
 template. Calling for exceptions must be brought up in the engineering team.
+
+## Table of Contents
+
+1. [Getting Started](#getting-started)
+    - [Layout](#layout)
+2. [How to Run](#how-to-run)
+    - [Clone Project](#clone-project)
+3. [Documentation](#documentation)
+    - [API Documentation](#API-documentation)
+    - [Control Version](#control-version)
+        - [Branches](#branches)
+        - [Branch Naming](#branch-naming)
+        - [Commit Message](#commit-message)
+4. [Notes](#notes)
 
 ## Getting started
 
@@ -160,10 +162,10 @@ A brief description of the layout:
 
 ## How to Run
 #### Clone Project
-
 ```bash
 git clone https://github.com/GoFellas/Qpay.git
 ```
+#### Before Start
 Inside the project folder
 ```bash
 cp sample_config.yaml config.yaml
@@ -179,6 +181,7 @@ go build
 Use --help for more instruction if needed 
 ## Documentation
 
+### API Documentation
 After running project checkout for api documentation on:
 ```
 your_host:your_ip/doc/index.html
