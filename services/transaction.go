@@ -201,3 +201,36 @@ func GetTransactionsByUserID(db *gorm.DB, userID uint) ([]models.Transaction, er
 
 	return transactions, nil
 }
+func SetStatusTransaction(db *gorm.DB, transactionID uint, status string) (*models.Transaction, error) {
+	var transaction models.Transaction
+	var trstatus int
+	if status == "NotPaid" {
+		trstatus = models.NotPaid
+	} else if status == "NotSuccessfully" {
+		trstatus = models.NotSuccessfully
+	} else if status == "IssueOccurred" {
+		trstatus = models.IssueOccurred
+	} else if status == "Blocked" {
+		trstatus = models.Blocked
+	} else if status == "Refund" {
+		trstatus = models.Refund
+	} else if status == "Cancelled" {
+		trstatus = models.Cancelled
+	} else if status == "ReturnToGateway" {
+		trstatus = models.ReturnToGateway
+	} else if status == "AwaitingConfirmation" {
+		trstatus = models.AwaitingConfirmation
+	} else if status == "Confirmed" {
+		trstatus = models.Confirmed
+	} else if status == "Paid" {
+		trstatus = models.Paid
+	} else {
+		return nil, errors.New("status field is unsupported")
+	}
+	err := db.Preload("Gateway").
+		First(&transaction, fmt.Sprintf("%s=?", "ID"), transactionID).Update("status", trstatus).Error
+	if err != nil {
+		return nil, errors.New("transaction not found")
+	}
+	return &transaction, nil
+}

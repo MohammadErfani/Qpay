@@ -9,6 +9,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 	"net/http"
+	"strconv"
 )
 
 type AdminRequest struct {
@@ -144,8 +145,17 @@ func (h *Handler) AdminGetGateway(ctx echo.Context) error {
 }
 
 func (h *Handler) AdminUpdateGateway(ctx echo.Context) error {
-	//TODO block unblock,...
-	return nil
+	gatewayID, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		return errors.New("gateway id is mistake")
+	}
+	gatewayStatus := ctx.Param("status")
+
+	gateway, err := services.SetStatusGateway(h.DB, uint(gatewayID), gatewayStatus)
+	if err != nil {
+		return ctx.JSON(http.StatusNotFound, "gateway not found!")
+	}
+	return ctx.JSON(http.StatusOK, SetGatewayResponse(*gateway))
 }
 
 // transaction handlers
@@ -172,8 +182,17 @@ func (h *Handler) AdminGetTransaction(ctx echo.Context) error {
 }
 
 func (h *Handler) AdminUpdateTransaction(ctx echo.Context) error {
-	//TODO
-	return nil
+	transactionID, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		return errors.New("transaction id is mistake")
+	}
+	transactionStatus := ctx.Param("status")
+
+	gateway, err := services.SetStatusTransaction(h.DB, uint(transactionID), transactionStatus)
+	if err != nil {
+		return ctx.JSON(http.StatusNotFound, "gateway not found!")
+	}
+	return ctx.JSON(http.StatusOK, SetTransactionResponse(*gateway))
 }
 
 //validations

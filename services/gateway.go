@@ -192,7 +192,6 @@ func ListAllGateway(db *gorm.DB) ([]models.Gateway, error) {
 }
 
 func PurchaseAddress(db *gorm.DB, userID, gatewayID uint, route string) (*models.Gateway, error) {
-	fmt.Printf("%v", db)
 	gateway, err := GetSpecificGateway(db, userID, gatewayID)
 	if err != nil {
 		return nil, err
@@ -203,6 +202,27 @@ func PurchaseAddress(db *gorm.DB, userID, gatewayID uint, route string) (*models
 	err = db.Model(&gateway).Updates(models.Gateway{Route: route}).Error
 	if err != nil {
 		return nil, err
+	}
+	return &gateway, nil
+}
+func SetStatusGateway(db *gorm.DB, gatewayID uint, status string) (*models.Gateway, error) {
+	var gateway models.Gateway
+	var gwstatus int
+	if status == "active" {
+		gwstatus = models.StatusGatewayActive
+	} else if status == "inactive" {
+		gwstatus = models.StatusGatewayInActive
+	} else if status == "blocked" {
+		gwstatus = models.StatusGatewayBlocked
+	} else if status == "Draft" {
+		gwstatus = models.StatusGatewayDraft
+	} else {
+		return nil, errors.New("status field is unsupported")
+	}
+	err := db.Preload("Commission").Preload("BankAccount").
+		First(&gateway, fmt.Sprintf("%s=?", "ID"), gatewayID).Update("status", gwstatus).Error
+	if err != nil {
+		return nil, errors.New("gateway not found")
 	}
 	return &gateway, nil
 }
