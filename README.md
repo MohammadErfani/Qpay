@@ -1,11 +1,40 @@
+<p align="center">
+  <a href="https://github.com/GoFellas/Qpay">
+    <picture>
+      <img height="125" alt="Fiber" src="https://avatars.githubusercontent.com/u/145125484?s=200&v=4">
+    </picture>
+  </a>
+  <br>
+</p>
+<br>
+
 # Qpay
 
-## About the project
+## 💡 About the project
 
-The template is used to create golang project. All golang projects must follow the conventions in the
-template. Calling for exceptions must be brought up in the engineering team.
+One of the services we would like to add to Q is a payment gateway provider. This service enables companies and individuals to create payment gateways, allowing their users to make purchases of their products by connecting to this payment gateway.
 
-## Table of Contents
+### 🎯 Qpay  features:
+
+1. Registration for Companies and Individuals: Qpay allows both companies and individual users to register and create accounts on the platform. This enables businesses and individuals to access and utilize the payment gateway services offered by Qpay.
+2. User Login and Authentication: Qpay provides a user login system with secure authentication procedures. This ensures that only authorized users can access their accounts and perform transactions, adding an extra layer of security to the platform.
+3. Creation of Payment Gateways for Businesses: Qpay offers the capability to create multiple payment gateways for businesses based on their specific requirements. This allows companies to set up separate payment channels for different products, services, or departments as needed.
+4. Personal Payment Gateway Creation for Users: Qpay also enables individual users to create their own personal payment gateways. This feature allows individuals to receive payments for their products, services, or personal transactions through a dedicated payment channel.
+5. Pricing and Tariff Options: Qpay provides various pricing plans and the flexibility to choose the desired tariff for each payment gateway. Users can select the most suitable pricing option based on their transaction volume, business size, and specific needs.
+6. Purchase of Test Payment Gateway and Testing with Bank: Qpay offers the option to purchase a test payment gateway and simulate the payment process through a bank. This allows businesses and individuals to test the functionality and reliability of their payment gateway before going live.
+7. Purchase of Customized Personalized Address for Gateways: Qpay enables users to purchase a personalized address (in a specific name) for their payment gateways. This feature allows businesses and individuals to have a unique and branded payment gateway URL.
+8. Purchase and Completion of Transactions through Gateways: Qpay facilitates the purchase process and enables users to complete transactions smoothly through the created payment gateways. This ensures a seamless and user-friendly payment experience for customers using the gateways.
+9. Admin Account Creation: Qpay provides the ability to create an admin account. This account is used to manage and oversee the payment gateway system.
+10. Temporary or Permanent Blocking of Gateways by Admin: The admin has the authority to temporarily or permanently block specific payment gateways. This feature allows the admin to control and manage the availability of gateways as needed.
+11. Unblocking Blocked Gateways by Admin: The admin can also unblock previously blocked gateways, restoring their functionality and allowing transactions to resume.
+12. Blocking All Gateways of a User by Admin: The admin has the capability to block all the payment gateways associated with a specific user. This feature provides additional control and security measures when necessary.
+13. Access to Transaction History: Qpay enables the admin to access and view a comprehensive list of transactions made through the payment gateways. This feature provides transparency and facilitates monitoring of financial activities.
+14. Filtering Transactions by Date and Price: The admin can filter transactions based on specific date ranges or price ranges. This allows for a more focused analysis and review of transactions within desired parameters.
+15. Searching within Recorded Transactions by Date and Price: The admin can perform searches within the recorded transactions based on specific date ranges or price ranges. This feature helps in locating specific transactions quickly and efficiently.
+16. Changing Bank Accounts Linked to Gateways: The admin has the ability to modify the bank accounts connected to the payment gateways. This feature enables the admin to update or replace bank account information as required.
+17. Saving Accounts for Easy User Access: Qpay allows users to save their accounts for easier and convenient access. This feature simplifies the login process and enhances user experience by eliminating the need to enter account information repeatedly.
+
+## 👀 Table of Contents
 
 1. [Getting Started](#getting-started)
     - [Layout](#layout)
@@ -23,7 +52,7 @@ template. Calling for exceptions must be brought up in the engineering team.
 
 Below we describe the conventions or tools specific to this project.
 
-### Layout
+### ⚙️ Layout
 
 ```tree
 .
@@ -160,7 +189,7 @@ A brief description of the layout:
 
 - Various utility functions and helpers.
 
-## How to Run
+## ⚡️ How to Run
 #### Clone Project
 ```bash
 git clone https://github.com/GoFellas/Qpay.git
@@ -245,4 +274,7 @@ By using a conventional commit message format, developers can more easily unders
 
 
 
-## Notes
+## ⚠️ License
+
+Copyright (c) 2019-present [GOFellas](https://github.com/GoFellas) . `QPay` is free and open-source software.
+
