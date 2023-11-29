@@ -1,0 +1,1261 @@
+basePath: /api/v1
+definitions:
+  handlers.AdminRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - email
+    - name
+    - password
+    - username
+    type: object
+  handlers.BankAccountRequest:
+    properties:
+      sheba:
+        type: string
+    type: object
+  handlers.BankAccountResponse:
+    properties:
+      account_owner:
+        type: string
+      bank_logo:
+        type: string
+      bank_name:
+        type: string
+      sheba:
+        type: string
+      status:
+        type: string
+    type: object
+  handlers.CommissionRequest:
+    properties:
+      amount_per_transaction:
+        type: number
+      percent_per_transaction:
+        type: number
+    type: object
+  handlers.CommissionResponse:
+    properties:
+      Percent_per_transaction:
+        type: number
+      amount_per_transaction:
+        type: number
+      id:
+        type: integer
+      status:
+        type: string
+    type: object
+  handlers.CreateTransactionRequest:
+    properties:
+      payment_amount:
+        type: number
+      phone_number:
+        type: string
+    type: object
+  handlers.CreateTransactionResponse:
+    properties:
+      id:
+        type: integer
+    type: object
+  handlers.FilterRequest:
+    properties:
+      end_date:
+        type: string
+      max_amount:
+        type: number
+      min_amount:
+        type: number
+      start_date:
+        type: string
+    type: object
+  handlers.GatewayRequest:
+    properties:
+      bank_account_id:
+        type: integer
+      commission_id:
+        type: integer
+      is_personal:
+        type: boolean
+      logo:
+        type: string
+      name:
+        type: string
+    type: object
+  handlers.GatewayResponse:
+    properties:
+      bank_account:
+        $ref: '#/definitions/handlers.BankAccountResponse'
+      commission:
+        $ref: '#/definitions/handlers.CommissionResponse'
+      logo:
+        type: string
+      name:
+        type: string
+      route:
+        type: string
+      status:
+        type: string
+      type:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  handlers.LoginReq:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+      phone_number:
+        type: string
+    type: object
+  handlers.LoginRes:
+    properties:
+      token:
+        type: string
+    type: object
+  handlers.PaymentTransactionRequest:
+    properties:
+      card_month:
+        type: integer
+      card_year:
+        type: integer
+      cvv2:
+        type: integer
+      password:
+        type: integer
+      payment_confirmation:
+        description: دستور پرداخت و کم کردن موجودی (کنسل تراکنش - پرداخت)
+        type: boolean
+      purchaser_card:
+        type: string
+      transaction_id:
+        type: integer
+    type: object
+  handlers.PaymentTransactionResponse:
+    properties:
+      payment_amount:
+        type: number
+      purchaser_card:
+        type: string
+      status:
+        type: integer
+      tracking_code:
+        type: string
+      transaction_id:
+        type: integer
+    type: object
+  handlers.PurchaseAddressRequest:
+    properties:
+      route:
+        type: string
+    type: object
+  handlers.RegisterRequest:
+    properties:
+      address:
+        type: string
+      email:
+        type: string
+      identity:
+        type: string
+      is_company:
+        type: boolean
+      name:
+        type: string
+      password:
+        type: string
+      phone_number:
+        type: string
+      username:
+        type: string
+    required:
+    - address
+    - email
+    - identity
+    - is_company
+    - name
+    - password
+    - phone_number
+    - username
+    type: object
+  handlers.Response:
+    properties:
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  handlers.StatusRequest:
+    properties:
+      status:
+        type: string
+    type: object
+  handlers.TransactionResponse:
+    properties:
+      payment_amount:
+        type: number
+      payment_date:
+        type: string
+      phone_number:
+        type: string
+      purchaser_card:
+        type: string
+      status:
+        type: string
+      tracking_code:
+        type: string
+    type: object
+  handlers.TransactionStartResponse:
+    properties:
+      owner_name:
+        type: string
+      payment_amount:
+        type: number
+    type: object
+  handlers.UpdateGatewayRequest:
+    properties:
+      bank_account_id:
+        type: integer
+      commission_id:
+        type: integer
+      logo:
+        type: string
+      name:
+        type: string
+    type: object
+  handlers.UserResponse:
+    properties:
+      address:
+        type: string
+      email:
+        type: string
+      identity:
+        type: string
+      name:
+        type: string
+      phone_number:
+        type: string
+      role:
+        type: string
+      username:
+        type: string
+    type: object
+  handlers.VerifyTransactionRequest:
+    properties:
+      tracking_code:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: This is API documentation for Project.
+  title: Qpay API
+  version: "1.0"
+paths:
+  /admin/commission:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all commissions.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of commissions
+          schema:
+            items:
+              $ref: '#/definitions/handlers.CommissionResponse'
+            type: array
+        "500":
+          description: '{"status": "error", "message": "Internal server error in getting
+            commissions"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: List all commissions
+      tags:
+      - admin
+    post:
+      consumes:
+      - application/json
+      description: Create a new commission with the provided details.
+      parameters:
+      - description: Commission details
+        in: body
+        name: commissionRequest
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CommissionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created commission details
+          schema:
+            $ref: '#/definitions/handlers.CommissionResponse'
+        "400":
+          description: '{"status": "error", "message": "Bind Error"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "500":
+          description: '{"status": "error", "message": "Internal server error in creating
+            commission"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Create a new commission
+      tags:
+      - admin
+  /admin/commission/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve details of a specific commission by its ID.
+      parameters:
+      - description: Commission ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Commission details
+          schema:
+            $ref: '#/definitions/handlers.CommissionResponse'
+        "404":
+          description: '{"status": "error", "message": "Commission not found!"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Get commission by ID
+      tags:
+      - admin
+  /admin/gateway:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all gateways.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of gateways
+          schema:
+            items:
+              $ref: '#/definitions/handlers.GatewayResponse'
+            type: array
+        "500":
+          description: '{"status": "error", "message": "Internal server error in getting
+            gateways"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: List all gateways
+      tags:
+      - admin
+  /admin/gateway/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve details of a specific gateway by its ID.
+      parameters:
+      - description: Gateway ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Gateway details
+          schema:
+            $ref: '#/definitions/handlers.GatewayResponse'
+        "404":
+          description: '{"status": "error", "message": "Gateway not found!"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Get gateway by ID
+      tags:
+      - admin
+    patch:
+      consumes:
+      - application/json
+      description: Update the status of a specific gateway by its ID.
+      parameters:
+      - description: Gateway ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated status details
+        in: body
+        name: updateRequest
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.StatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated gateway details
+          schema:
+            $ref: '#/definitions/handlers.GatewayResponse'
+        "400":
+          description: '{"status": "error", "message": "Status field is unsupported"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "500":
+          description: '{"status": "error", "message": "Internal server error"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Update gateway status by ID
+      tags:
+      - admin
+  /admin/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new admin with the provided details.
+      parameters:
+      - description: Admin details
+        in: body
+        name: adminRequest
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.AdminRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Success message
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "400":
+          description: '{"status": "error", "message": "Bind Error"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "403":
+          description: '{"status": "error", "message": "Invalid admin details"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "409":
+          description: '{"status": "error", "message": "Username or email already
+            exists"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "500":
+          description: '{"status": "error", "message": "Internal server error in create
+            admin"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Create a new admin
+      tags:
+      - admin
+  /admin/transaction:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all transactions.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of transactions
+          schema:
+            items:
+              $ref: '#/definitions/handlers.TransactionResponse'
+            type: array
+        "500":
+          description: '{"status": "error", "message": "Internal server error in getting
+            transactions"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: List all transactions
+      tags:
+      - admin
+  /admin/transaction/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve details of a specific transaction by its ID.
+      parameters:
+      - description: Transaction ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Transaction details
+          schema:
+            $ref: '#/definitions/handlers.TransactionResponse'
+        "404":
+          description: '{"status": "error", "message": "Transaction not found!"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Get transaction by ID
+      tags:
+      - admin
+    patch:
+      consumes:
+      - application/json
+      description: Update the status of a specific transaction by its ID.
+      parameters:
+      - description: Transaction ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated status details
+        in: body
+        name: updateRequest
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.StatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated transaction details
+          schema:
+            $ref: '#/definitions/handlers.TransactionResponse'
+        "400":
+          description: '{"status": "error", "message": "Status field is unsupported"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "500":
+          description: '{"status": "error", "message": "Internal server error"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Update transaction status by ID
+      tags:
+      - admin
+  /admin/user:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all users.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of users
+          schema:
+            items:
+              $ref: '#/definitions/handlers.UserResponse'
+            type: array
+        "500":
+          description: '{"status": "error", "message": "Internal server error in getting
+            users"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: List all users
+      tags:
+      - admin
+  /admin/user/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve details of a specific user by its ID.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User details
+          schema:
+            $ref: '#/definitions/handlers.UserResponse'
+        "404":
+          description: '{"status": "error", "message": "User not found!"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Get user by ID
+      tags:
+      - admin
+    patch:
+      consumes:
+      - application/json
+      description: Update the status of a specific user by its ID.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated status details
+        in: body
+        name: updateRequest
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.StatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success message
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "400":
+          description: '{"status": "error", "message": "Status field is unsupported"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "500":
+          description: '{"status": "error", "message": "Internal server error"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Update user status by ID
+      tags:
+      - admin
+  /bankaccount:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all bank accounts associated with the authenticated
+        user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of bank accounts
+          schema:
+            items:
+              $ref: '#/definitions/handlers.BankAccountResponse'
+            type: array
+        "400":
+          description: '{"status": "error", "message": "You didn''t add any bank account!"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: List all bank accounts for the authenticated user
+      tags:
+      - bankaccounts
+    post:
+      consumes:
+      - application/json
+      description: Register a new bank account for the authenticated user with the
+        provided SHEBA number.
+      parameters:
+      - description: Bank account registration details
+        in: body
+        name: bankAccountRequest
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.BankAccountRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: '{"status": "success", "message": "You''re bank account is
+            successfully registered!"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "400":
+          description: '{"status": "error", "message": "Invalid SHEBA format"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "403":
+          description: '{"status": "error", "message": "SHEBA doesn''t match your
+            credentials"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "409":
+          description: '{"status": "error", "message": "SHEBA already exists"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "500":
+          description: '{"status": "error", "message": "Internal server error in create
+            bank account"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Register a new bank account for the authenticated user
+      tags:
+      - bankaccounts
+  /bankaccount/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a specific bank account associated with the authenticated
+        user.
+      parameters:
+      - description: Bank Account ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"status": "success", "message": "You''re bank account is
+            successfully deleted!"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "400":
+          description: '{"status": "error", "message": "Bank account is not correct"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "404":
+          description: '{"status": "error", "message": "Bank account does not exist!"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete a bank account by ID for the authenticated user
+      tags:
+      - bankaccounts
+    get:
+      consumes:
+      - application/json
+      description: Retrieve details of a specific bank account associated with the
+        authenticated user.
+      parameters:
+      - description: Bank Account ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Bank account details
+          schema:
+            $ref: '#/definitions/handlers.BankAccountResponse'
+        "400":
+          description: '{"status": "error", "message": "Bank account is not correct"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "404":
+          description: '{"status": "error", "message": "Bank account does not exist!"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Find a bank account by ID for the authenticated user
+      tags:
+      - bankaccounts
+  /gateway:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all gateways associated with the authenticated
+        user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of gateways
+          schema:
+            items:
+              $ref: '#/definitions/handlers.GatewayResponse'
+            type: array
+        "400":
+          description: '{"status": "error", "message": "You didn''t add any gateway.
+            Please register a gateway!"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: List all gateways for the authenticated user
+      tags:
+      - gateways
+    post:
+      consumes:
+      - application/json
+      description: Register a new gateway with the provided details.
+      parameters:
+      - description: Gateway details
+        in: body
+        name: gatewayRequest
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.GatewayRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Success message
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "400":
+          description: '{"status": "error", "message": "Bind Error"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "403":
+          description: '{"status": "error", "message": "Commission is incorrect"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "500":
+          description: '{"status": "error", "message": "Internal server error in gateway"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Register a new gateway for the authenticated user
+      tags:
+      - gateways
+  /gateway/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve details of a specific gateway associated with the authenticated
+        user.
+      parameters:
+      - description: Gateway ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Gateway details
+          schema:
+            $ref: '#/definitions/handlers.GatewayResponse'
+        "400":
+          description: '{"status": "error", "message": "Gateway ID is not correct"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "404":
+          description: '{"status": "error", "message": "Gateway does not exist!"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Find a gateway by ID for the authenticated user
+      tags:
+      - gateways
+    patch:
+      consumes:
+      - application/json
+      description: Update details of a specific gateway associated with the authenticated
+        user.
+      parameters:
+      - description: Gateway ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated gateway details
+        in: body
+        name: updateRequest
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.UpdateGatewayRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success message
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "400":
+          description: '{"status": "error", "message": "Invalid gateway details"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Update a gateway for the authenticated user
+      tags:
+      - gateways
+  /gateway/{id}/address:
+    patch:
+      consumes:
+      - application/json
+      description: Purchase an address for a specific gateway associated with the
+        authenticated user.
+      parameters:
+      - description: Gateway ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Purchase address details
+        in: body
+        name: purchaseAddressRequest
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.PurchaseAddressRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success message
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "400":
+          description: '{"status": "error", "message": "Address already in use"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Purchase an address for a gateway
+      tags:
+      - gateways
+  /gateway/commission/list:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all active commissions.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of commissions
+          schema:
+            items:
+              $ref: '#/definitions/handlers.CommissionResponse'
+            type: array
+        "500":
+          description: '{"status": "error", "message": "Internal server error in getting
+            commissions"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: List all active commissions
+      tags:
+      - gateways
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Log in a user using email/phone and password.
+      parameters:
+      - description: Login details
+        in: body
+        name: loginRequest
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.LoginReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login successful, returns JWT token
+          schema:
+            $ref: '#/definitions/handlers.LoginRes'
+        "400":
+          description: '{"message": "Bad request"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: User login
+      tags:
+      - auth
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user with the provided information.
+      parameters:
+      - description: User registration details
+        in: body
+        name: registerRequest
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: '{"status": "success", "message": "User created successfully"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "400":
+          description: '{"status": "error", "message": "Bind Error"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "403":
+          description: '{"status": "error", "message": "Validation Error"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "409":
+          description: '{"status": "error", "message": "Conflict - User already exists"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "500":
+          description: '{"status": "error", "message": "Internal server error in creating
+            user"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      summary: Create a new user
+      tags:
+      - users
+  /transaction/create/{route}:
+    post:
+      consumes:
+      - application/json
+      description: Create a new transaction with the provided payment details.
+      parameters:
+      - description: Gateway route
+        in: path
+        name: route
+        required: true
+        type: string
+      - description: Transaction details
+        in: body
+        name: transactionRequest
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateTransactionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Transaction ID
+          schema:
+            $ref: '#/definitions/handlers.CreateTransactionResponse'
+        "400":
+          description: '{"status": "error", "message": "Bind Error"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "403":
+          description: '{"status": "error", "message": "SHEBA doesn''t match your
+            credentials"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "404":
+          description: '{"status": "error", "message": "No gateway with such route"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "500":
+          description: '{"status": "error", "message": "Internal server error in create
+            transaction"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Create a new transaction for the authenticated user
+      tags:
+      - transactions
+  /transaction/filter:
+    post:
+      consumes:
+      - application/json
+      description: Filter transactions based on start date, end date, and payment
+        amount range.
+      parameters:
+      - description: Filter criteria
+        in: body
+        name: filterRequest
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.FilterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of filtered transactions
+          schema:
+            items:
+              $ref: '#/definitions/handlers.TransactionResponse'
+            type: array
+        "400":
+          description: '{"status": "error", "message": "Bind Error"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "500":
+          description: '{"status": "error", "message": "Internal server error"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Filter transactions for the authenticated user
+      tags:
+      - transactions
+  /transaction/find/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve details of a specific transaction associated with the
+        authenticated user.
+      parameters:
+      - description: Transaction ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Transaction details
+          schema:
+            $ref: '#/definitions/handlers.TransactionResponse'
+        "400":
+          description: '{"status": "error", "message": "Transaction ID is not correct"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "404":
+          description: '{"status": "error", "message": "Transaction does not exist!"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Find a transaction by ID for the authenticated user
+      tags:
+      - transactions
+  /transaction/list:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all transactions associated with the authenticated
+        user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of transactions
+          schema:
+            items:
+              $ref: '#/definitions/handlers.TransactionResponse'
+            type: array
+        "400":
+          description: '{"status": "error", "message": "You don''t have any transaction"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: List all transactions for the authenticated user
+      tags:
+      - transactions
+  /transaction/start:
+    post:
+      consumes:
+      - application/json
+      description: Begin a payment transaction with the provided payment details.
+      parameters:
+      - description: Payment transaction details
+        in: body
+        name: transactionRequest
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.PaymentTransactionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Payment transaction details
+          schema:
+            $ref: '#/definitions/handlers.PaymentTransactionResponse'
+        "400":
+          description: '{"status": "error", "message": "Invalid transaction details"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "403":
+          description: '{"status": "error", "message": "Transaction is Canceled"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "500":
+          description: '{"status": "error", "message": "Internal server error"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Begin a payment transaction
+      tags:
+      - transactions
+  /transaction/start/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get transaction details to start a payment transaction.
+      parameters:
+      - description: Transaction ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Transaction details for start
+          schema:
+            $ref: '#/definitions/handlers.TransactionStartResponse'
+        "500":
+          description: '{"status": "error", "message": "Internal server error"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Get transaction details for starting a transaction
+      tags:
+      - transactions
+  /transaction/verify:
+    post:
+      consumes:
+      - application/json
+      description: Verify a transaction by tracking code and retrieve its details.
+      parameters:
+      - description: Verification request
+        in: body
+        name: verifyRequest
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.VerifyTransactionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Transaction details
+          schema:
+            $ref: '#/definitions/handlers.TransactionResponse'
+        "400":
+          description: '{"status": "error", "message": "Bind Error"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "404":
+          description: '{"status": "error", "message": "Transaction does not exist!"}'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Verify a transaction by tracking code
+      tags:
+      - transactions
+swagger: "2.0"

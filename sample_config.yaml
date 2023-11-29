@@ -1,0 +1,19 @@
+database:
+  host: localhost
+  port: 5432
+  username: admin
+  password: password
+  db: qpay
+
+server:
+  port: 8000
+
+auth:
+  secret-key: mysecretkey
+  expiresIn: 15
+
+admin:
+  name: go fellas
+  username: goFellas
+  email: go.fellas@gmail.com
+  password: password

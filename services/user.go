@@ -1,0 +1,48 @@
+package services
+
+import (
+	"Qpay/models"
+	"Qpay/utils"
+	"errors"
+	"fmt"
+	"gorm.io/gorm"
+)
+
+func GetUser(db *gorm.DB, fieldName, fieldValue string) (*models.User, error) {
+	var user models.User
+	err := db.Preload("Gateways").Preload("BankAccounts").Preload("BankAccounts.Bank").First(&user, fmt.Sprintf("%s=?", fieldName), fieldValue).Error
+	if err != nil {
+		return nil, errors.New("user not found")
+	}
+	return &user, nil
+}
+func CreateUser(db *gorm.DB, user models.User) (*models.User, error) {
+	hashedPassword, err := utils.HashPassword(user.Password)
+	if err != nil {
+		return nil, err
+	}
+	user.Password = hashedPassword
+	result := db.Create(&user)
+	if err = result.Error; err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+func GetUserByEmail(db *gorm.DB, email string) (*models.User, error) {
+	var dbUser models.User
+	err := db.First(&dbUser, "email=?", email).Error
+	if err != nil {
+		return nil, errors.New("user not found")
+	}
+	return &dbUser, nil
+}
+
+func ListAllUser(db *gorm.DB) ([]models.User, error) {
+	var users []models.User
+	err := db.Find(&users).Error
+	if err != nil {
+		return users, errors.New("error getting users")
+	}
+	return users, nil
+}
