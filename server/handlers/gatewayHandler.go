@@ -19,14 +19,14 @@ type GatewayRequest struct {
 }
 
 type GatewayResponse struct {
-	UserID        uint   `json:"user_id"`
-	CommissionID  uint   `json:"commission_id"`
-	BankAccountID uint   `json:"bank_account_id"`
-	Name          string `json:"name"`
-	Logo          string `json:"logo"`
-	Route         string `json:"route"`
-	Status        string `json:"status"`
-	Type          string `json:"type"`
+	UserID      uint                `json:"user_id"`
+	Commission  CommissionResponse  `json:"commission"`
+	BankAccount BankAccountResponse `json:"bank_account"`
+	Name        string              `json:"name"`
+	Logo        string              `json:"logo"`
+	Route       string              `json:"route"`
+	Status      string              `json:"status"`
+	Type        string              `json:"type"`
 }
 
 type ChangeGatewayRequest struct {
@@ -348,13 +348,13 @@ func SetGatewayResponse(gateway models.Gateway) GatewayResponse {
 		GatewayType = "Business"
 	}
 	return GatewayResponse{
-		UserID:        gateway.UserID,
-		CommissionID:  gateway.CommissionID,
-		BankAccountID: gateway.BankAccountID,
-		Name:          gateway.Name,
-		Logo:          gateway.Logo,
-		Route:         gateway.Route,
-		Status:        status,
-		Type:          GatewayType,
+		UserID:      gateway.UserID,
+		Commission:  SetCommissionsResponse(gateway.Commission),
+		BankAccount: SetBankAccountResponse(gateway.BankAccount),
+		Name:        gateway.Name,
+		Logo:        gateway.Logo,
+		Route:       gateway.Route,
+		Status:      status,
+		Type:        GatewayType,
 	}
 }

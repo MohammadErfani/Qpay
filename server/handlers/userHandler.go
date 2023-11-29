@@ -25,11 +25,10 @@ type UserResponse struct {
 	Name        string `json:"name"`
 	Username    string `json:"username"`
 	Email       string `json:"email"`
-	Password    string `json:"password"`
 	PhoneNumber string `json:"phone_number"`
 	Identity    string `json:"identity"`
 	Address     string `json:"address"`
-	Role        uint8  `json:"role"`
+	Role        string `json:"role"`
 }
 
 // @Summary Create a new user
@@ -124,6 +123,15 @@ func ValidateUserUnique(db *gorm.DB, user *RegisterRequest) error {
 	return nil
 }
 func SetUsersResponse(user models.User) UserResponse {
+	var role string
+	switch user.Role {
+	case models.IsNaturalPerson:
+		role = "natural person"
+	case models.IsCompany:
+		role = "company"
+	default:
+		role = "admin"
+	}
 	return UserResponse{
 		Name:        user.Name,
 		Username:    user.Username,
@@ -131,6 +139,6 @@ func SetUsersResponse(user models.User) UserResponse {
 		PhoneNumber: user.PhoneNumber,
 		Identity:    user.Identity,
 		Address:     user.Address,
-		Role:        user.Role,
+		Role:        role,
 	}
 }

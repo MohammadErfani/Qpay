@@ -57,9 +57,9 @@ func (h *Handler) ListAllTransaction(ctx echo.Context) error {
 			Message: "You don't have Any Transaction",
 		})
 	}
-	var TransactionResponses []PaymentTransactionResponse
+	var TransactionResponses []TransactionResponse
 	for _, ba := range transactions {
-		TransactionResponses = append(TransactionResponses, BeginTransactionResponse(ba))
+		TransactionResponses = append(TransactionResponses, SetTransactionResponse(ba))
 	}
 	return ctx.JSON(http.StatusOK, TransactionResponses)
 }
@@ -93,7 +93,7 @@ func (h *Handler) FindTransaction(ctx echo.Context) error {
 			Message: "Gateway does not exist!",
 		})
 	}
-	return ctx.JSON(http.StatusOK, BeginTransactionResponse(transaction))
+	return ctx.JSON(http.StatusOK, SetTransactionResponse(transaction))
 }
 
 // FilterTransaction godoc

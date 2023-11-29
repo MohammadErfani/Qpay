@@ -9,7 +9,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 	"net/http"
-	"strconv"
 )
 
 type AdminRequest struct {
@@ -21,7 +20,11 @@ type AdminRequest struct {
 
 type CommissionRequest struct {
 	AmountPerTrans  float64 `json:"amount_per_transaction"`
-	PercentPerTrans float64 `json:"Percent_per_transaction"`
+	PercentPerTrans float64 `json:"percent_per_transaction"`
+}
+
+type StatusRequest struct {
+	Status string `json:"status"`
 }
 
 type CommissionResponse struct {
@@ -34,7 +37,10 @@ type CommissionResponse struct {
 func (h *Handler) AdminCreate(ctx echo.Context) error {
 	var req AdminRequest
 	if err := ctx.Bind(&req); err != nil {
-		return ctx.JSON(http.StatusBadRequest, "Bind Error")
+		return ctx.JSON(http.StatusBadRequest, Response{
+			Status:  "error",
+			Message: "Bind Error",
+		})
 	}
 	if err := ValidateAdmin(&req); err != nil {
 		return ctx.JSON(http.StatusForbidden, err.Error())
@@ -50,7 +56,10 @@ func (h *Handler) AdminCreate(ctx echo.Context) error {
 		req.Password,
 	)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, "Internal server error in create admin")
+		return ctx.JSON(http.StatusInternalServerError, Response{
+			Status:  "error",
+			Message: "Internal server error in create admin",
+		})
 	}
 	return ctx.JSON(http.StatusCreated, Response{Status: "success", Message: "Admin created successfully"})
 
@@ -62,7 +71,10 @@ func (h *Handler) AdminCreate(ctx echo.Context) error {
 func (h *Handler) AdminListAllCommission(ctx echo.Context) error {
 	commissions, err := services.ListAllCommission(h.DB)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, "Internal server error in getting commissions")
+		return ctx.JSON(http.StatusInternalServerError, Response{
+			Status:  "error",
+			Message: "Internal server error in getting commissions",
+		})
 	}
 	var commResponses []CommissionResponse
 	for _, comm := range commissions {
@@ -75,11 +87,17 @@ func (h *Handler) AdminListAllCommission(ctx echo.Context) error {
 func (h *Handler) AdminCreateCommission(ctx echo.Context) error {
 	var req CommissionRequest
 	if err := ctx.Bind(&req); err != nil {
-		return ctx.JSON(http.StatusBadRequest, "Bind Error")
+		return ctx.JSON(http.StatusBadRequest, Response{
+			Status:  "error",
+			Message: "Bind Error",
+		})
 	}
 	comm, err := services.CreateCommission(h.DB, req.AmountPerTrans, req.PercentPerTrans)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, "Internal server error in creating commission")
+		return ctx.JSON(http.StatusInternalServerError, Response{
+			Status:  "error",
+			Message: "Internal server error in creating commission",
+		})
 	}
 	return ctx.JSON(http.StatusCreated, SetCommissionsResponse(*comm))
 }
@@ -88,7 +106,10 @@ func (h *Handler) AdminGetCommission(ctx echo.Context) error {
 	commID := ctx.Param("id")
 	comm, err := services.GetCommission(h.DB, "id", fmt.Sprintf("%v", commID))
 	if err != nil {
-		return ctx.JSON(http.StatusNotFound, "commission not found!")
+		return ctx.JSON(http.StatusNotFound, Response{
+			Status:  "error",
+			Message: "commission not found!",
+		})
 	}
 	return ctx.JSON(http.StatusOK, SetCommissionsResponse(*comm))
 }
@@ -96,29 +117,66 @@ func (h *Handler) AdminGetCommission(ctx echo.Context) error {
 // user handlers
 
 func (h *Handler) AdminListUsers(ctx echo.Context) error {
-	users, err := services.ListAllCommission(h.DB)
+	users, err := services.ListAllUser(h.DB)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, "Internal server error in getting commissions")
+		return ctx.JSON(http.StatusInternalServerError, Response{
+			Status:  "error",
+			Message: "Internal server error in getting users",
+		})
 	}
-	var commResponses []CommissionResponse
-	for _, comm := range users {
-		commResponses = append(commResponses, SetCommissionsResponse(comm))
+	var userResponses []UserResponse
+	for _, user := range users {
+		userResponses = append(userResponses, SetUsersResponse(user))
 	}
-	return ctx.JSON(http.StatusOK, commResponses)
+	return ctx.JSON(http.StatusOK, userResponses)
 }
 
 func (h *Handler) AdminGetUser(ctx echo.Context) error {
 	userID := ctx.Param("id")
 	user, err := services.GetUser(h.DB, "id", fmt.Sprintf("%v", userID))
 	if err != nil {
-		return ctx.JSON(http.StatusNotFound, "user not found!")
+		return ctx.JSON(http.StatusNotFound, Response{
+			Status:  "error",
+			Message: "user not found!",
+		})
 	}
 	return ctx.JSON(http.StatusOK, SetUsersResponse(*user))
 }
 
 func (h *Handler) AdminUpdateUser(ctx echo.Context) error {
-	//TODO for block unblock all user gateways,...
-	return nil
+	userID := ctx.Param("id")
+	user, err := services.GetUser(h.DB, "id", fmt.Sprintf("%v", userID))
+	if err != nil {
+		return ctx.JSON(http.StatusNotFound, Response{
+			Status:  "error",
+			Message: "user not found!",
+		})
+	}
+	var req StatusRequest
+	if err = ctx.Bind(&req); err != nil {
+		return ctx.JSON(http.StatusBadRequest, Response{
+			Status:  "error",
+			Message: "Bind error",
+		})
+	}
+	err = services.ChangeUserGatewaysStatus(h.DB, user, req.Status)
+	if err != nil {
+		if err.Error() == "status field is unsupported" {
+			return ctx.JSON(http.StatusBadRequest, Response{
+				Status:  "error",
+				Message: err.Error(),
+			})
+		}
+		return ctx.JSON(http.StatusInternalServerError, Response{
+			Status:  "error",
+			Message: "internal server error",
+		})
+	}
+	return ctx.JSON(http.StatusOK, Response{
+		Status:  "success",
+		Message: "user gateways updated successfully",
+	})
+
 }
 
 // gateway handlers
@@ -126,7 +184,10 @@ func (h *Handler) AdminUpdateUser(ctx echo.Context) error {
 func (h *Handler) AdminListAllGateways(ctx echo.Context) error {
 	gateways, err := services.ListAllGateway(h.DB)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, "Internal server error in getting gateways")
+		return ctx.JSON(http.StatusInternalServerError, Response{
+			Status:  "error",
+			Message: "Internal server error in getting gateways",
+		})
 	}
 	var gatewayResponses []GatewayResponse
 	for _, gateway := range gateways {
@@ -139,21 +200,42 @@ func (h *Handler) AdminGetGateway(ctx echo.Context) error {
 	gatewayID := ctx.Param("id")
 	gateway, err := services.GetGateway(h.DB, "id", fmt.Sprintf("%v", gatewayID))
 	if err != nil {
-		return ctx.JSON(http.StatusNotFound, "gateway not found!")
+		return ctx.JSON(http.StatusNotFound, Response{
+			Status:  "error",
+			Message: "gateway not found!",
+		})
 	}
 	return ctx.JSON(http.StatusOK, SetGatewayResponse(*gateway))
 }
 
 func (h *Handler) AdminUpdateGateway(ctx echo.Context) error {
-	gatewayID, err := strconv.Atoi(ctx.Param("id"))
+	gatewayID := ctx.Param("id")
+	gateway, err := services.GetGateway(h.DB, "id", fmt.Sprintf("%v", gatewayID))
 	if err != nil {
-		return errors.New("gateway id is mistake")
+		return ctx.JSON(http.StatusNotFound, Response{
+			Status:  "error",
+			Message: "gateway not found!",
+		})
 	}
-	gatewayStatus := ctx.Param("status")
-
-	gateway, err := services.SetStatusGateway(h.DB, uint(gatewayID), gatewayStatus)
+	var req StatusRequest
+	if err = ctx.Bind(&req); err != nil {
+		return ctx.JSON(http.StatusBadRequest, Response{
+			Status:  "error",
+			Message: "Bind error",
+		})
+	}
+	gateway, err = services.SetStatusGateway(h.DB, gateway, req.Status)
 	if err != nil {
-		return ctx.JSON(http.StatusNotFound, "gateway not found!")
+		if err.Error() == "status field is unsupported" {
+			return ctx.JSON(http.StatusBadRequest, Response{
+				Status:  "error",
+				Message: err.Error(),
+			})
+		}
+		return ctx.JSON(http.StatusInternalServerError, Response{
+			Status:  "error",
+			Message: "internal server error",
+		})
 	}
 	return ctx.JSON(http.StatusOK, SetGatewayResponse(*gateway))
 }
@@ -163,7 +245,10 @@ func (h *Handler) AdminUpdateGateway(ctx echo.Context) error {
 func (h *Handler) AdminListTransactions(ctx echo.Context) error {
 	transactions, err := services.ListAllTransaction(h.DB)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, "Internal server error in getting transactions")
+		return ctx.JSON(http.StatusInternalServerError, Response{
+			Status:  "error",
+			Message: "Internal server error in getting transactions",
+		})
 	}
 	var transactionResponses []TransactionResponse
 	for _, transaction := range transactions {
@@ -176,23 +261,44 @@ func (h *Handler) AdminGetTransaction(ctx echo.Context) error {
 	transactionID := ctx.Param("id")
 	transaction, err := services.GetTransaction(h.DB, "id", fmt.Sprintf("%v", transactionID))
 	if err != nil {
-		return ctx.JSON(http.StatusNotFound, "transaction not found!")
+		return ctx.JSON(http.StatusNotFound, Response{
+			Status:  "error",
+			Message: "transaction not found!",
+		})
 	}
 	return ctx.JSON(http.StatusOK, SetTransactionResponse(*transaction))
 }
 
 func (h *Handler) AdminUpdateTransaction(ctx echo.Context) error {
-	transactionID, err := strconv.Atoi(ctx.Param("id"))
+	transactionID := ctx.Param("id")
+	transaction, err := services.GetTransaction(h.DB, "id", fmt.Sprintf("%v", transactionID))
 	if err != nil {
-		return errors.New("transaction id is mistake")
+		return ctx.JSON(http.StatusNotFound, Response{
+			Status:  "error",
+			Message: "transaction not found!",
+		})
 	}
-	transactionStatus := ctx.Param("status")
-
-	gateway, err := services.SetStatusTransaction(h.DB, uint(transactionID), transactionStatus)
+	var req StatusRequest
+	if err = ctx.Bind(&req); err != nil {
+		return ctx.JSON(http.StatusBadRequest, Response{
+			Status:  "error",
+			Message: "Bind error",
+		})
+	}
+	transaction, err = services.SetStatusTransaction(h.DB, transaction, req.Status)
 	if err != nil {
-		return ctx.JSON(http.StatusNotFound, "gateway not found!")
+		if err.Error() == "status field is unsupported" {
+			return ctx.JSON(http.StatusBadRequest, Response{
+				Status:  "error",
+				Message: err.Error(),
+			})
+		}
+		return ctx.JSON(http.StatusInternalServerError, Response{
+			Status:  "error",
+			Message: "internal server error",
+		})
 	}
-	return ctx.JSON(http.StatusOK, SetTransactionResponse(*gateway))
+	return ctx.JSON(http.StatusOK, SetTransactionResponse(*transaction))
 }
 
 //validations

@@ -205,24 +205,23 @@ func PurchaseAddress(db *gorm.DB, userID, gatewayID uint, route string) (*models
 	}
 	return &gateway, nil
 }
-func SetStatusGateway(db *gorm.DB, gatewayID uint, status string) (*models.Gateway, error) {
-	var gateway models.Gateway
-	var gwstatus int
+func SetStatusGateway(db *gorm.DB, gateway *models.Gateway, status string) (*models.Gateway, error) {
+	//var gateway models.Gateway
+	var gwstatus uint8
 	if status == "active" {
 		gwstatus = models.StatusGatewayActive
 	} else if status == "inactive" {
 		gwstatus = models.StatusGatewayInActive
 	} else if status == "blocked" {
 		gwstatus = models.StatusGatewayBlocked
-	} else if status == "Draft" {
+	} else if status == "draft" {
 		gwstatus = models.StatusGatewayDraft
 	} else {
 		return nil, errors.New("status field is unsupported")
 	}
-	err := db.Preload("Commission").Preload("BankAccount").
-		First(&gateway, fmt.Sprintf("%s=?", "ID"), gatewayID).Update("status", gwstatus).Error
+	err := db.Model(gateway).Update("status", gwstatus).Error
 	if err != nil {
-		return nil, errors.New("gateway not found")
+		return nil, err
 	}
-	return &gateway, nil
+	return gateway, nil
 }

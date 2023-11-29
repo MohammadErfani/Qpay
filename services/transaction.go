@@ -106,7 +106,7 @@ func PaymentTransaction(db *gorm.DB, TransactionID uint, CardYear, CardMonth int
 }
 func ListAllTransaction(db *gorm.DB) ([]models.Transaction, error) {
 	var transactions []models.Transaction
-	err := db.Preload("Commission").Preload("BankAccount").Find(&transactions).Error
+	err := db.Find(&transactions).Error
 	if err != nil {
 		return transactions, errors.New("error getting commissions")
 	}
@@ -201,8 +201,7 @@ func GetTransactionsByUserID(db *gorm.DB, userID uint) ([]models.Transaction, er
 
 	return transactions, nil
 }
-func SetStatusTransaction(db *gorm.DB, transactionID uint, status string) (*models.Transaction, error) {
-	var transaction models.Transaction
+func SetStatusTransaction(db *gorm.DB, transaction *models.Transaction, status string) (*models.Transaction, error) {
 	var trstatus int
 	if status == "NotPaid" {
 		trstatus = models.NotPaid
@@ -227,10 +226,9 @@ func SetStatusTransaction(db *gorm.DB, transactionID uint, status string) (*mode
 	} else {
 		return nil, errors.New("status field is unsupported")
 	}
-	err := db.Preload("Gateway").
-		First(&transaction, fmt.Sprintf("%s=?", "ID"), transactionID).Update("status", trstatus).Error
+	err := db.Model(transaction).Update("status", trstatus).Error
 	if err != nil {
 		return nil, errors.New("transaction not found")
 	}
-	return &transaction, nil
+	return transaction, nil
 }
