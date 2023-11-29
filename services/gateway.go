@@ -199,7 +199,7 @@ func PurchaseAddress(db *gorm.DB, userID, gatewayID uint, route string) (*models
 	if _, err = GetGateway(db, "route", route); err == nil {
 		return nil, errors.New("already in use")
 	}
-	err = db.Model(&gateway).Updates(models.Gateway{Route: route}).Error
+	err = db.Model(&gateway).Where("user_id=?", userID).Updates(models.Gateway{Route: route}).Error
 	if err != nil {
 		return nil, err
 	}
