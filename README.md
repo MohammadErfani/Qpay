@@ -12,7 +12,7 @@
 
 ## 💡 About the project
 
-One of the services we would like to add to Q is a payment gateway provider. This service enables companies and individuals to create payment gateways, allowing their users to make purchases of their products by connecting to this payment gateway.
+One of the services we would like to add to QPay is a payment gateway provider. This service enables companies and individuals to create payment gateways, allowing their users to make purchases of their products by connecting to this payment gateway.
 
 ### 🎯 Qpay  features:
 
