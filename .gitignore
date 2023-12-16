@@ -22,4 +22,6 @@ go.work
 .idea
 .vscode
 config.yaml
+doc_config.yaml
+docker-compose.yml
 Qpay

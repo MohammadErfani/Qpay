@@ -1,0 +1,56 @@
+version: "3.7"
+
+services:
+  # -----------------------------
+  # qpay application
+  # -----------------------------
+  qpay-app:
+    container_name: qpay-api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    volumes:
+      - ./doc_config.yaml:/app/config.yaml
+    ports:
+      - 8000:80
+    networks:
+      - qpay
+    depends_on:
+      - postgres
+
+  # -----------------------------
+  # postgres database
+  # -----------------------------
+  postgres:
+    container_name: qpay-postgres
+    image: postgres:13.3
+    restart: unless-stopped
+    volumes:
+      - qpay:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_USER=admin
+      - POSTGRES_DB=qpay
+      - TZ=Asia/Tehran
+
+    networks:
+      - qpay
+
+# -----------------------------
+# networks
+# -----------------------------
+networks:
+  qpay:
+    external: true
+
+# -----------------------------
+# volumes
+# -----------------------------
+volumes:
+  qpay:
+    name: qpay
+    driver: local
+
